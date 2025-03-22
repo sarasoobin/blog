@@ -24,7 +24,7 @@ description: >- # this means to ignore newlines until "baseurl:"
   개발자가 되기 위한 성장장과정을 기록하는 블로그입니다. 
   이 블로그는 저의 성장 아카이브이자 포트폴리오 역할을 합니다.
   이곳이 함께 성장하는 공간이 되었으면 좋겠습니다.
-baseurl: "" # the subpath of your site, e.g. /blog
+baseurl: "/blog" # the subpath of your site, e.g. /blog
 url: "" # the base hostname & protocol for your site, e.g. http://example.com
 github_username:  sarasoobin
 
