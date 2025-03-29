@@ -28,7 +28,7 @@ byte b=100;
   부호 연산의 결과는 int 타입이므로 int 타입 변수에 저장
 
   
-java
+```java
   package sec02.exam01;
   public class SignOperatorExample {
 	public static void main(String[] args) {
@@ -45,13 +45,13 @@ java
 
 	}
   }
-
+```
 
   **증감연산자(++,--)**
   *증감 연산작 변수 앞에 있으면 우선 변수값을 1증가 또는 1감소시킨 후에 다른 연산자를 처리한다. 반면, 증감 연산자가 변수 뒤에 있으면 다른 연산자를 먼저 처리한 후 변수 값을 1증가 또는 1감소.
 
   
-java
+```java
    package sec02.exam02;
    public class IncreaseDecreaseOperatorExample {
 	public static void main(String[] args) {
@@ -86,21 +86,21 @@ java
 		System.out.println("y=" + y);
 	}
    }
-
+```
    위에 코드에서 1. z = ++x + y++; 이 코드와
    2.
-   
-++x;
+   ```java
+   x++;
    z=x+y;
    y++;
-
+   ```
    이 코드는 같다. 1번 코드는 헷갈릴 수 있으니 2번 코드를 쓰는 것이 좋다.
 
 
    **논리 부정 연산자(!)**
    - 논리 부정 연산자는 true를 false로, false를 true로 변경-> boolean 타입에만 사용
   
-java
+```java
   package sec02.exam03;
   public class DenyLogicOperatorExample {
 	public static void main(String[] args) {
@@ -114,7 +114,7 @@ java
 		System.out.println(play);
 	}
   }
-
+```
 |실행결과|
 |---|
 |true|
@@ -128,7 +128,7 @@ java
 2. 피연산자들이 모두 정수 타입이고 long타입이 포함되어 있을 경우, 모두 *long* 타입으로 변환된 후 수행
 3. 피연산자 중 실수 타입이 있을 경우, *허용범위가 큰 실수* 타입으로 변환된 후 연산 수행
 
-java
+```java
 package sec02.exam04;
 
 public class ArithmeticOperatorExample {
@@ -155,10 +155,10 @@ public class ArithmeticOperatorExample {
 		System.out.println("result6=" + result6);	
 	}
 }
-
+```
 -char 타입도 정수 타입이므로 산술 연산이 가능. 주의할 점은 int타입으로 변환되므로 연산 결과는 int 타입이 된다는 점이다.
 
-java
+```java
 package sec02.exam05;
 
 public class CharOperationExample {
@@ -171,11 +171,11 @@ public class CharOperationExample {
 		//System.out.println("c3: " + c3);
 	}
 }
-
+```
 **문자열 결합 연산자(+)**
 - 문자열 결합 연산자인 +는 문자열을 결합
 
-java
+```java
 package sec02.exam06;
 
 public class StringConcatExample {
@@ -190,7 +190,7 @@ public class StringConcatExample {
 		System.out.println(str4);		
 	}
 }
-
+```
 |실행결과|
 |---|
 |JDK6.0 특징|
@@ -203,7 +203,7 @@ public class StringConcatExample {
 만약 피연산자가 char 타입이면 유니코드 값으로 비교 연산 수행.
 ('A'<'B')->(65<66)
 
-java
+```java
 package sec02.exam07;
 
 public class CompareOperatorExample1 {
@@ -223,9 +223,9 @@ public class CompareOperatorExample1 {
 		System.out.println("result4=" + result4);		
 	}
 }
+```
 
-
-java
+```java
 package sec02.exam08;
 
 public class CompareOperatorExample2 {
@@ -241,11 +241,11 @@ public class CompareOperatorExample2 {
 		System.out.println((int)(v4*10) == (int)(v5*10)); //true
 	}
 }
-
+```
 -이때 v5는 double로 바뀐다.-> 부동소수점 방식으로 정확히 0.1이 아닌 0.1보다 큰 수가 된다.
 
 **논리 연산자**
-java
+```java
 package sec02.exam09;
 
 public class LogicalOperatorExample {
@@ -275,12 +275,12 @@ public class LogicalOperatorExample {
 		}		
 	}
 }
-
+```
 
 -&와 && 차이점: & 하나는 앞에 식이 false여도 뒤에 식도 false인지 검사. && 두개는 앞의 식이 false이면 뒤에 식은 검사X ->  속도 면에서 빠르다
 
 **대입 연산자**
-java
+```java
 package sec02.exam10;
 
 public class AssignmentOperatorExample {
@@ -298,11 +298,11 @@ public class AssignmentOperatorExample {
 		System.out.println("result=" + result);	
 	}
 }
-
+```
 **삼항 연산자**
 -삼항 연산자 ?앞의 조건식에 따라 콜론(:) 앞뒤의 피연산자가 선택된다고 해서 조건 연산식이라 부르기도 한다
 
-java
+```java
 package sec02.exam11;
 
 public class ConditionalOperationExample {
@@ -313,13 +313,13 @@ public class ConditionalOperationExample {
 	}
 }
 
-
+```
 # Chapter 04 조건문과 반복문
 
 ## 04-1 조건문: if문, switch문
 **if문**
 - 조건식이 ture 이면 블록을 실행, false면 실행 X
-java
+```java
 package sec01.exam01;
 
 public class IfExample {
@@ -336,11 +336,11 @@ public class IfExample {
 			System.out.println("등급은 B 입니다.");
 	}
 }
-
+```
 
 **if-else**
 - if 문의 조건식이 true이면 if문의 블록 실행, 조건식이 false 이면 else 블록 실행
-java
+```java
 package sec01.exam02;
 
 public class IfElseExample {
@@ -356,9 +356,9 @@ public class IfElseExample {
 		}
 	}
 }
-
+```
 **if-else if-else문**
-java
+```java
 package sec01.exam03;
 
 public class IfElseIfElseExample {
@@ -380,7 +380,7 @@ public class IfElseIfElseExample {
 		}
 	}
 }
-
+```
 
 *Math.random* 
 1. 이 메소드는 0.0과 1.0 사이에 속하는 double 타입의 난수 하나를 리턴. 이때 0.0은 범위에 포함되고 1.0은 포함되지 않는다.
@@ -394,7 +394,7 @@ public class IfElseIfElseExample {
 5. 이 원리를 이용하여 start부터 시작하는 n개의 정수 중에서 임의의 정수 하나를 얻기 위한 연산식을 만들 수 있다.
 int num=(int)(Math.random()*n)+start
 
-java
+```java
 package sec01.exam04;
 
 public class IfDiceExample {
@@ -416,7 +416,7 @@ public class IfDiceExample {
 		}
 	}
 }
-
+```
 |실행결과|
 |---|
 |4번이 나왔습니다.|
@@ -426,7 +426,7 @@ public class IfDiceExample {
 - switch문은 괄호 안의 변수 값과 동일한 값을 갖는 case로 가서 실행문을 실행한다. 만약 괄호 안의 변수 값과 동일한 값을 갖는 case가 없으면 default로 가서 실행문 실행한다.
 (default는 생략 가능)
 
-java
+```java
 package sec01.exam05;
 
 public class SwitchExample {
@@ -455,11 +455,11 @@ public class SwitchExample {
 		}
 	}
 }
-
+```
 -> case 끝에 break가 붙는 이유는 다음 case를 실행하지 않고 switch문을 빠져나가기 위함. 
 
 *break문이 없는 case*
-java
+```java
 package sec01.exam06;
 
 public class SwitchNoBreakCaseExample {
@@ -480,13 +480,13 @@ public class SwitchNoBreakCaseExample {
 		}
 	}
 }
-
+```
 | 실행결과 |
 |----------|
 | [현재시간:9 시]<br>회의를 합니다.<br>업무를 봅니다.<br>외근을 나갑니다. |
 
 *char 타입의 switch문*
-java
+```java
 package sec01.exam07;
 
 public class SwitchCharExample {
@@ -507,7 +507,7 @@ public class SwitchCharExample {
 		}
 	}
 }
-
+```
 
 |실행결과|
 |---|
@@ -515,7 +515,7 @@ public class SwitchCharExample {
 
 
 *String 타입의 switch문*
-java
+```java
 package sec01.exam08;
 
 public class SwitchStringExample {
@@ -534,7 +534,7 @@ public class SwitchStringExample {
 		}
 	}
 }
-
+```
 |실행결과|
 |---|
 |500만원|
@@ -542,23 +542,23 @@ public class SwitchStringExample {
 ## 4-2 반복문: for문, while문, do-while문
 
 **for문**
-java
+```java
 int sum-0:
 sum=sum+2;
 sum=sum+3;
 sum=sum+4;
 sum=sum+5;
 System.out.print("1~5의 합:"+sum);
-
+```
 위의 코드를 for문을 사용하여 줄이자자
-java
+```java
 int sum=0;
 for(int i=1;i<=100,i++){
     sum=sum+1;
 }
 System.out.print("1~5의 합:"+sum)
-
-java
+```
+```java
 package sec02.exam01;
 
 public class ForPrintFrom1To10Example {
@@ -568,12 +568,12 @@ public class ForPrintFrom1To10Example {
 		}
 	}
 }
-
+```
 | 실행결과 |
 |----------|
 | 1<br>2<br>3<br>4<br>5<br>6<br>7<br>8<br>9<br>10 |
 
-java
+```java
 package sec02.exam02;
 
 public class ForSumFrom1To100Example1 {
@@ -587,9 +587,9 @@ public class ForSumFrom1To100Example1 {
 		System.out.println("1~100 합 : " + sum);
 	}
 }
+```
 
-
-java
+```java
 package sec02.exam03;
 
 public class ForSumFrom1To100Example1 {
@@ -604,10 +604,10 @@ public class ForSumFrom1To100Example1 {
 		System.out.println("1~" + (i-1) + " 합 : " + sum);
 	}
 }
-
+```
 ->이와 같은 경우는 i가 for 문 전에 선언되었으므로 for문 내부 뿐만 아니라 외부에서도 사용 가능하다
 
-java
+```java
 package sec02.exam04;
 
 public class ForFloatCounterExample {
@@ -617,10 +617,10 @@ public class ForFloatCounterExample {
 		}
 	}
 }
-
+```
 ->*for문을 작성할 때 주의할 점은 초기화 식에서 루프 타운터 변수 선언 시 부동소수점 방식 쓰는 float 타입 사용X*
 EX)
-java
+```java
 package sec02.exam04;
 
 public class ForFloatCounterExample {
@@ -630,6 +630,7 @@ public class ForFloatCounterExample {
 		}
 	}
 }
+```
 | 실행결과 |
 |----------|
 | 0.1<br>0.2<br>0.3<br>0.4<br>0.5<br>0.6<br>0.70000005<br>0.800001<br>0.9000001 |
@@ -638,7 +639,7 @@ public class ForFloatCounterExample {
 
 **중첩 for문**
 - for문 안에 또 다른 for문 내포
-java
+```java
 package sec02.exam05;
 
 public class ForMultiplicationTableExample {
@@ -651,11 +652,11 @@ public class ForMultiplicationTableExample {
 		}
 	}
 }
-
+```
 **while 문**
 -for문이 정해진 횟수만큼 반복한다면, while문은 조건식이 true일 경우에 반복
 
-java
+```java
 package sec02.exam06;
 
 public class WhilePrintFrom1To10Example {
@@ -667,9 +668,9 @@ public class WhilePrintFrom1To10Example {
 		}
 	}
 }
-
+```
 1부터 100까지 합을 구하는 while 문문
-java
+```java
 package sec02.exam07;
 
 public class WhileSumForm1To100Example {
@@ -685,14 +686,14 @@ public class WhileSumForm1To100Example {
 		System.out.println("1~" + (i-1) + " 합 : " + sum);
 	}
 }
-
+```
 **do-while**
 - 블록 내부의 실행문을 우선 실행하고 실행 결과에 따라서 반복 실행을 계속할지 결정
 
 **break문**
 - 반복문인 for문, while문, do-while문의 실행 중지, switch 문에서도 break문을 사용하여 switch문 종료
 
-java
+```java
 package sec02.exam08;
 
 public class  BreakExample {
@@ -707,12 +708,12 @@ public class  BreakExample {
 		System.out.println("프로그램 종료");
 	}
 }
-
+```
 -> 주사위 번호 중 하나를 반복적으로 무작위로 뽑되, 6이 나오면 while문 종료
 
 *중첩된 반복문에서 바깥쪽 반복문까지 종료시키려면 바깥쪽 반복문에 이름(라벨) 붙이고 'break 이름;'
 
-java
+```java
 package sec02.exam09;
 
 public class  BreakOutterExample {
@@ -730,11 +731,11 @@ public class  BreakOutterExample {
 		System.out.println("프로그램 실행 종료");
 	}
 }
-
+```
 **continue문**
 - for문, while문, do-while문에서만 사용, 증감식 또는 조건식으로 돌아간다
 
-java
+```java
 package sec02.exam10;
 
 public class  ContinueExample {
@@ -747,7 +748,7 @@ public class  ContinueExample {
 		}
 	}
 }
-
+```
 | 실행결과 |
 |----------|
 | 2<br>4<br>6<br>8<br>10 |
@@ -780,22 +781,22 @@ public class  ContinueExample {
 
 - NullPointerException: 참조변수가 null을 가진 경우, 참조 객체 없으므로 참조 변수를 통해 객체 사용 불가. 만약 null인 참조 변수를 통해 있지 않은 객체의 데이터나 멧ㅎ드를 사용하면  NullPointerException이 발생
 Ex)
-java
+```java
 int[] intArray=null;
 intArray[0]=10;//NullPointerException 발생
-
+```
 **String 타입**
 - 자바는 문자열 리터럴이 동일하면 string객체를 공유한다. 
 - new 연산자를 사영해서 직접 String 객체를 생성시킬 수도 있다.
 -> new 연산자는 힙 영역에 새로운 객체 만들때 사용하는 연산자로 객체 생성 연산자라 한다
 
-java
+```java
 String name1=new String("신용권");
 String name2=new String("신용권")
-
+```
 -> 이 경우엔 name1과 name2는 서로 다른 String 객체를 참조한다
 
-java
+```java
 package sec01.exam01;
 
 public class StringEqualsExample {
@@ -827,7 +828,7 @@ public class StringEqualsExample {
 		}		
 	} 
 }
-
+```
 |실행결과|
 |---|
 |strVar1과 strVar2는 참조가 같음|
