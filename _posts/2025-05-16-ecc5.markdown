@@ -1,0 +1,1079 @@
+---
+layout: post
+title:  "ECC 개발블로그 5일차"
+date:   2025-05-16
+categories: ECC
+---
+
+# 08-1 인터페이스
+
+## 인터페이스 선언
+
+**인터페이스: 개발 코드와 객체가 서로 통신하는 접점 역할**
+- 개발코드가 직접 메소드를 호츨하면 간단한데 중간에 인터페이스를 두는 이유: 개발코드를 수정하지 않고 객체를 변경하기 위함
+
+인터페이스 선언: interface 인터페이스 이름{...}
+- 인터페이스 선언은 class 키워드 대신에 interface키워드를 사용한다
+
+- 클래스는 필드, 생성자, 메소드를 구성 멤버로 가지는데 비해, 인터페이스는 상수 필드와 추상 메소드 만을 구성 멤버로 가진다
+- 인터페이스는 객체로 생성할 수 없기 때문에 생성자를 가질 수 없다.
+
+**상수 필드 선언**
+- 인터페이스는 상수 필드는 선언이 가능하다.
+
+
+```java
+package sec01.exam02;
+
+public interface RemoteControl {
+	int MAX_VOLUME = 10;
+	int MIN_VOLUME = 0;
+}
+```
+-상수는 public static final로 선언한다. public static final을 생략하더라도 컴파일 과정에서 자동으로 붙게 된다
+
+**추상 메소드 선언**
+
+```java
+package sec01.exam03;
+
+public interface RemoteControl {
+	//상수
+	int MAX_VOLUME = 10;
+	int MIN_VOLUME = 0;
+	
+	//추상 메소드
+	void turnOn();
+	void turnOff();
+	void setVolume(int volume);
+}
+```
+- RemoteControl인터페이스에서 turnOn(), turnOff(), setVolume() 추상 메소드를 선언했다.
+- 세 메소드의 리턴 타입은 모두 void라는 것과 turnOn(), turnOff() 메소드는 호출시 매개값이 필요없고, setVolume() 메소드만 int 매개값이 필요하다
+
+## 인터페이스 구현
+- 개발 코드가 인터페이스 메소드를 호출하면 인터페이스는 객체의 메소드를 호출한다.
+- 객체는 인터페이스에서 정의된 추상 메소드와 동일한 메소드 이름, 매개타입, 리턴 아입을 가진 실체 메소드를 가지고 있어야한다.
+- 이런 객체를 인터페이스의 구현 객체라 하고 구현 객체를 생성하는 클래스를 구현 클래스라고 한다
+
+**구현 클래스**
+- 구현 클래스는 보통 클래스와 동일하나 인터페이스 타입으로 사용할 수 있음을 알려주기 위해 클래스 선언부에 implements키워드를 추가하고 인터페이스 이름을 명시.
+public class 구현클래스이름 implements 인터페이스 이름{
+
+}
+
+```java
+package sec01.exam04;
+
+public class Television implements RemoteControl {
+	//필드
+	private int volume;
+	
+	//turnOn() 추상 메소드의 실체 메소드
+	public void turnOn() {
+		System.out.println("TV를 켭니다.");
+	}	
+	//turnOff() 추상 메소드의 실체 메소드
+	public void turnOff() {
+		System.out.println("TV를 끕니다.");
+	}
+	//setVolume() 추상 메소드의 실체 메소드
+	public void setVolume(int volume) {
+		if(volume>RemoteControl.MAX_VOLUME) {
+			this.volume = RemoteControl.MAX_VOLUME;
+		} else if(volume<RemoteControl.MIN_VOLUME) {
+			this.volume = RemoteControl.MIN_VOLUME;
+		} else {
+			this.volume = volume;
+		}
+		System.out.println("현재 TV 볼륨: " + this.volume);
+	}
+}
+```
+```java
+package sec01.exam04;
+
+public class Audio implements RemoteControl {
+	//필드
+	private int volume;
+	
+	//turnOn() 추상 메소드의 실체 메소드
+	public void turnOn() {
+		System.out.println("Audio를 켭니다.");
+	}	
+	//turnOff() 추상 메소드의 실체 메소드
+	public void turnOff() {
+		System.out.println("Audio를 끕니다.");
+	}
+	//setVolume() 추상 메소드의 실체 메소드
+	public void setVolume(int volume) {
+		if(volume>RemoteControl.MAX_VOLUME) {
+			this.volume = RemoteControl.MAX_VOLUME;
+		} else if(volume<RemoteControl.MIN_VOLUME) {
+			this.volume = RemoteControl.MIN_VOLUME;
+		} else {
+			this.volume = volume;
+		}
+		System.out.println("현재 Audio 볼륨: " + this.volume);
+	}
+}
+```
+구현 클래스가 작성되면 new연산자로 객체를 생성할 수 있다.
+```java
+Television tv=new Television();
+```
+하지만 이 코드는 인터페이스를 사용한 것은 아니다
+
+```java
+package sec01.exam04;
+
+public class RemoteControlExample {
+	public static void main(String[] args) {
+		RemoteControl rc;
+		
+		rc = new Television();
+		//rc.turnOn();
+		//rc.setVolume(10);
+		//rc.turnOff();
+		
+		rc = new Audio();
+		//rc.turnOn();
+		//rc.setVolume(10);
+		//rc.turnOff();
+	}
+}
+```
+- 인터페이스 변수에 구현 객체 대입
+
+
+**다중 인터페이스 구현 클래스**
+
+다중 인터페이스를 구현할 경우, 구현 클래스는 모든 인터페이스의 추상 메소드에 대해 실체 메소드를 작성해야 한다.
+
+```java
+package sec01.exam05;
+
+public interface Searchable {
+	void search(String url);
+}
+```
+
+```java
+package sec01.exam05;
+
+public class SmartTelevision implements RemoteControl, Searchable {
+	private int volume;
+	
+	public void turnOn() {
+		System.out.println("TV를 켭니다.");
+	}	
+	public void turnOff() {
+		System.out.println("TV를 끕니다.");
+	}
+	public void setVolume(int volume) {
+		if(volume>RemoteControl.MAX_VOLUME) {
+			this.volume = RemoteControl.MAX_VOLUME;
+		} else if(volume<RemoteControl.MIN_VOLUME) {
+			this.volume = RemoteControl.MIN_VOLUME;
+		} else {
+			this.volume = volume;
+		}
+		System.out.println("현재 TV 볼륨: " + this.volume);
+	}
+	
+	public void search(String url) {
+		System.out.println(url + "을 검색합니다.");
+	}
+}
+```
+SmartTelevision 클래스는 RemoteControl과 Searchable 인터페이스를 모두 구현하고 있다.
+
+```java
+package sec01.exam05;
+
+public class SmartTelevisionExample {
+	public static void main(String[] args) {
+		SmartTelevision tv = new SmartTelevision();
+		
+		RemoteControl rc = tv;
+		//rc.turnOn();
+		//rc.setVolume(10);
+		
+		Searchable searchable = tv;
+		//searchable.search("http://www.google.com");
+	}
+}
+```
+- 인터페이스 변수에 구현 객체 대입
+
+## 인터페이스 사용
+
+1. 인터페이스가 필드 타입으로 사용될 경우, 필드에 구현 객체를 대입할 수 있다
+2. 인터페이스가 생성자의 매개 변수 타입으로 사용될 경우, new 연산자로 객체를 생성할 때 구현 객체를 생성자의 매개값으로 대입할 수 있다
+3. 인터페이스가 로컬 변수 타입으로 사용될 경우, 변수에 구현 객체를 대입할 수 있다
+4. 인터페이스가 메소드의 매개변수 타입으로 사용될 경우, 메소드 호출 시 구현 객체를 매개값으로 대입할 수 있다
+
+- 인터페이스는 개발코드와 구현 객체 사이에 접점 역할을 담당한다.
+- 개발코드는 인터페이스에 선언된 추상 메소드를 호출하고 인터페이스는 구현 객체의 재정의 메소드를 호출한다
+
+```java
+package sec01.exam06;
+
+public class MyClass {
+	// 필드
+	RemoteControl rc = new Television();
+
+	// 생성자
+	MyClass() {
+	}
+
+	MyClass(RemoteControl rc) {
+		this.rc = rc;
+		rc.turnOn();
+		rc.setVolume(5);
+	}
+
+	// 메소드
+	void methodA() {
+		RemoteControl rc = new Audio();
+		rc.turnOn();
+		rc.setVolume(5);
+	}
+
+	void methodB(RemoteControl rc) {
+		rc.turnOn();
+		rc.setVolume(5);
+	}
+}
+```
+
+```java
+package sec01.exam06;
+
+public class MyClassExample {
+	public static void main(String[] args) {
+		System.out.println("1)----------------");
+		
+		MyClass myClass1 = new MyClass();
+		myClass1.rc.turnOn();
+		myClass1.rc.setVolume(5);
+		
+		System.out.println("2)----------------");
+		
+		MyClass myClass2 = new MyClass(new Audio());
+		
+		System.out.println("3)----------------");
+		
+		MyClass myClass3 = new MyClass();
+		myClass3.methodA();
+		
+		System.out.println("4)----------------");
+		
+		MyClass myClass4 = new MyClass();
+		myClass4.methodB(new Television());
+	}
+}
+```
+# 8-2 타입 변환과 다형성
+
+- 프로그램을 개발할 떄 인터페이스를 사용해서 메소드를 호출하도록 코딩했다면 구현 객체를 손쉽게 교체할 수 있다
+- 프로그램 소스 코드는 변함이 없는데, 구현 객체를 교체해서 프로그램의 실행 결과가 다양해진다: **인터페이스의 다형성**
+
+## 자동 타입 변환
+- 구현 객체가 인터페이스 타입으로 변환되는 것은 자동 타입 변환에 해당한다
+
+## 필드의 다형성
+
+```java
+package sec02.exam01;
+
+public interface Tire {
+	public void roll();
+}
+```
+
+```java
+package sec02.exam01;
+
+public class HankookTire implements Tire {
+	@Override
+	public void roll() {
+		System.out.println("한국 타이어가 굴러갑니다.");
+	}
+}
+```
+```java
+package sec02.exam01;
+
+public class KumhoTire implements Tire {
+	@Override
+	public void roll() {
+		System.out.println("금호 타이어가 굴러갑니다.");
+	}
+}
+```java
+package sec02.exam01;
+
+public class Car {
+	Tire frontLeftTire = new HankookTire();
+	Tire frontRightTire = new HankookTire();
+	Tire backLeftTire = new HankookTire();
+	Tire backRightTire = new HankookTire();
+	
+	void run() {
+		frontLeftTire.roll();
+		frontRightTire.roll();
+		backLeftTire.roll();
+		backRightTire.roll();
+	}
+}
+```
+```java
+package sec02.exam01;
+
+public class CarExample {
+	public static void main(String[] args) {
+		Car myCar = new Car();
+		
+		myCar.run();
+		
+		myCar.frontLeftTire = new KumhoTire();
+		myCar.frontRightTire = new KumhoTire();
+		
+		myCar.run();
+	}
+}
+```
+- 필드의 다형성 테스트
+
+## 매개변수의 다형성
+
+- 매개변수를 인터페이스 타입으로 선언하고 호출할 때에는 구현 객체를 대입한다
+
+```java
+package sec02.exam02;
+
+public class Driver {
+	public void drive(Vehicle vehicle) {
+		vehicle.run();
+	}
+}
+```
+- 매개변수의 인터페이스화
+
+```java
+package sec02.exam02;
+
+public interface Vehicle {
+	public void run();
+}
+```
+
+```java
+package sec02.exam02;
+
+public class Bus implements Vehicle {
+	@Override
+	public void run() {
+		System.out.println("버스가 달립니다.");
+	}
+}
+```
+- 구현클래스
+
+```java
+package sec02.exam02;
+
+public class Taxi implements Vehicle {
+	@Override
+	public void run() {
+		System.out.println("택시가 달립니다.");
+	}
+}
+```
+```java
+package sec02.exam02;
+
+public class DriverExample {
+	public static void main(String[] args) {
+		Driver driver = new Driver();
+		
+		Bus bus = new Bus();
+		Taxi taxi = new Taxi();
+		
+		driver.drive(bus);
+		driver.drive(taxi);
+	}
+}
+```
+- 매개변수의 다형성 테스트
+  
+## 강제 타입 변환
+
+구현클래스 변수=(구현클래스) 인터페이스 변수;
+
+```java
+package sec02.exam03;
+
+public interface Vehicle {
+	public void run();
+}
+```
+
+```java
+package sec02.exam03;
+
+public class Bus implements Vehicle {
+	@Override
+	public void run() {
+		System.out.println("버스가 달립니다.");
+	}
+	
+	public void checkFare() {
+		System.out.println("승차요금을 체크합니다.");
+	}
+}
+```
+
+```java
+package sec02.exam03;
+
+public class VehicleExample {
+	public static void main(String[] args) {
+		Vehicle vehicle = new Bus();
+
+		vehicle.run();
+		//vehicle.checkFare(); (x)
+
+		Bus bus = (Bus) vehicle;  //강제타입변환
+
+		bus.run();
+		bus.checkFare();
+	}
+}
+```
+
+## 객체 타입 확인
+
+- 강제 타입 변환은 구현 객체가 인터페이스 타입으로 변환되어 있는 상태에서 가능하다
+- 그러나 어떤 구현 객체가 변환되어 있는지 알 수 없는 상태에서 강제 타입 변환할 경우 ClassCastException이 발생할 수 있다
+
+구현 객체가 인터페이스 타입으로 변환되어있는지 확인하는 방법?: instanceof연산자 사용
+
+```java
+package sec02.exam04;
+
+public class Driver {
+	public void drive(Vehicle vehicle) {
+		if(vehicle instanceof Bus) {
+			Bus bus = (Bus) vehicle;
+			bus.checkFare();
+		}
+		vehicle.run();
+	}
+}
+```
+
+```java
+package sec02.exam04;
+
+public class DriverExample {
+	public static void main(String[] args) {
+		Driver driver = new Driver();
+		
+		Bus bus = new Bus();
+		Taxi taxi = new Taxi();
+		
+		driver.drive(bus);
+		driver.drive(taxi);
+	}
+}
+```
+
+# 09-1 중첩 클래스와 중첩 인터페이스 소개
+
+- 중첩클래스란 클래스 내부에 선언된 클래스를 말함
+- 중첩 인터페이스란 인터페이스 클래스 내부에 선언된 인터페이스를 말한다: 인터페이스를 클래스 내부에 선언하는 이유는 해당 클래스와 긴밀한 관계를 맺는 구현 클래스를 만들기 위해서임
+  
+## 중첩 클래스
+- 클래스 멤버로서 선언되는 중첩 클래스를 멤버 클래스
+- 생상자 또는 메소드 내부에서 선언되는 중첩 클래스를 로컬 클래스
+
+*중첩 클래스도 하나의 클래스이기 때문에 컴파일하면 바이트 코드 파일(.class)이 별도로 생성
+- 멤버 클래스일 경우 바이트 코드 파일의 이름은: A$B.class
+- 로컬 클래스일 경우: A$1B.class
+
+**인스턴스 멤버 클래스**
+- static키워드 없이 중첩 선언된 클래스를 말함
+- 인스턴스 멤버 클래스는 인스턴스 필드와 메소드만 선언이 가능하고 정적 필드와 메소드는 선언할 수 없다
+
+**정적 멤버 클래스**
+- static 키워드로 선언된 클래스
+- 정적 멤버 클래스는 모든 종류의 필드와 메소드를 선언할 수 있다
+
+**로컬 클래스**
+- 중첩 클래스는 메소드 내에서도 선언할 수 있는데, 이것을 로컬 클래스라고 한다.
+- 로컬 클래스는 접근 제한자 및 static 을 붙일 수 없다: 로컬 클래스는 메소드 내부에서만 사용되므로 접근을 제한할 필요가 없기 때문이다
+
+```java
+package sec01.exam01;
+
+/**바깥 클래스**/
+class A {
+	A() { System.out.println("A 객체가 생성됨"); }
+	
+	/**인스턴스 멤버 클래스**/
+	public class B {
+		B() { System.out.println("B 객체가 생성됨"); }
+		int field1;
+		//static int field2; //Java 17부터 허용
+		void method1() { }
+		//static void method2() { } //Java 17부터 허용
+	}
+	
+	/**정적 멤버 클래스**/
+	static class C {
+		C() { System.out.println("C 객체가 생성됨"); }
+		int field1;
+		static int field2;
+		void method1() { }
+		static void method2() { }
+	}
+	
+	void method() {
+		/**로컬 클래스**/
+		class D {
+			D() { System.out.println("D 객체가 생성됨"); }
+			int field1;
+			//static int field2; //Java 17부터 허용
+			void method1() { }
+			//static void method2() { } //Java 17부터 허용
+		}
+		D d = new D();
+		d.field1 = 3;
+		d.method1();
+		//D.field2 = 3; //Java 17부터 허용
+		//D.method2(); //Java 17부터 허용
+	}
+}
+```
+
+```java
+package sec01.exam01;
+
+public class Main {
+	public static void main(String[] args) {
+		A a = new A();
+		
+		//인스턴스 멤버 클래스 객체 생성
+		A.B b = a.new B();
+		b.field1 = 3;
+		b.method1();
+		//A.B.field2 = 3; //Java 17부터 허용
+		//A.B.method2(); 	//Java 17부터 허용
+		
+		//정적 멤버 클래스 객체 생성
+		A.C c = new A.C();
+		c.field1 = 3;
+		c.method1();
+		A.C.field2 = 3;
+		A.C.method2();
+		
+		//로컬 클래스 객체 생성을 위한 메소드 호출
+		a.method();
+	}
+}
+```
+
+## 중첩 클래스의 접근 제한
+
+1. 바깥 필드와 메소드에서 사용 제한
+```java
+package sec01.exam02;
+
+public class A {
+	//인스턴스 필드
+	B field1 = new B();               
+	C field2 = new C();               
+	
+	//인스턴스 메소드
+	void method1() {
+		B var1 = new B();
+		C var2 = new C();
+	}
+	
+	//정적 필드 초기화
+	//static B field3 = new B();
+	static C field4 = new C();
+	
+	//정적 메소드
+	static void method2() {
+		//B var1 = new B();
+		C var2 = new C();
+	}
+	
+	//인스턴스 멤버 클래스
+	class B {}
+	//정적 멤버 클래스
+	static class C {}	
+}
+```
+**멤버 클래스에서 사용 제한**
+
+```java
+package sec01.exam03;
+
+public class A {
+	int field1;
+	void method1() { }
+	
+	static int field2;
+	static void method2() { }
+	
+	class B {
+		void method() {
+			field1 = 10;
+			method1();
+
+			field2 = 10;
+			method2();
+		}
+	}
+	
+	static class C {
+		void method() {
+			//field1 = 10;
+			//method1();
+
+			field2 = 10;
+			method2();
+		}
+	}	
+}
+```
+
+**로컬 클래스에서 사용 제한**
+
+```java
+package sec01.exam04;
+
+public class Outter {
+	//자바7 이전
+	public void method1(final int arg) {
+		final int localVariable = 1;
+		//arg = 100; (x)
+		//localVariable = 100; (x)
+		class Inner {
+			public void method() {
+				int result = arg + localVariable;
+			}
+		}
+	}
+	
+	//자바8 이후
+	public void method2(int arg) {
+		int localVariable = 1;
+		//arg = 100; (x)
+		//localVariable = 100; (x)
+		class Inner {
+			public void method() {
+				int result = arg + localVariable;
+			}
+		}
+	}
+}  
+```
+
+**중첩 클래스에서 바깥 클래스 참조 얻기**
+
+```java
+package sec01.exam05;
+
+public class Outter {
+	String field = "Outter-field";
+	void method() {
+		System.out.println("Outter-method");
+	}
+	
+	class Nested {
+		String field = "Nested-field";
+		void method() {
+			System.out.println("Nested-method");
+		}
+		void print() {
+			System.out.println(this.field);
+			this.method();
+			System.out.println(Outter.this.field);
+			Outter.this.method();
+		}
+	}
+}
+```
+```java
+package sec01.exam05;
+
+public class OutterExample {
+	public static void main(String[] args) {
+		Outter outter = new Outter();
+		Outter.Nested nested = outter.new Nested();
+		nested.print();
+	}
+}
+```
+
+## 중첩 인터페이스
+- 클래스의 멤버로 선언된 인터페이스를 말한다
+- 인터페이스를 클래스 내부에 선언하는 이유는 해당 클래스와 긴밀한 관계를 맺는 구현 클래스를 만들기 위함이다
+- 인스턴스 맴버 인터페이스와 정적 멤버 인터페이스 모두 가능하다
+- UI 프로그래밍에서 이벤트 처리할 목적으로 활용
+
+```java
+package sec01.exam06;
+
+public class Button {
+	OnClickListener listener;
+	
+	void setOnClickListener(OnClickListener listener) {
+		this.listener = listener;
+	}
+	
+	void touch() {
+		listener.onClick();
+	}
+	
+	static interface OnClickListener {
+		void onClick();
+	}
+}
+```
+```java
+package sec01.exam06;
+
+public class CallListener implements Button.OnClickListener {
+	@Override
+	public void onClick() {
+		System.out.println("전화를 겁니다.");
+	}
+}
+```
+```java
+package sec01.exam06;
+
+public class MessageListener implements Button.OnClickListener {
+	@Override
+	public void onClick() {
+		System.out.println("메시지를 보냅니다.");
+	}
+}
+```
+```java
+package sec01.exam06;
+
+public class ButtonExample {
+	public static void main(String[] args) {
+		Button btn = new Button();
+		
+		btn.setOnClickListener(new CallListener());
+		btn.touch();
+		
+		btn.setOnClickListener(new MessageListener());
+		btn.touch();
+	}
+}
+```
+# 09-2 익명 객체
+
+익명 객체는 이름이 없는 객체를 말한다
+
+-익명 객체를 만들기 위한 조건
+1. 어떤 클래스를 상속하거나 인터페이스를 구현해야한다
+
+- 부모 클래스 변수는 이름이 없는 자식 객체르 참조하고, 인터페이스 변수느 이름이 없는 구현 객체를 참조한다
+
+## 익명 자식 객체 생성
+
+```java
+package sec02.exam01;
+
+public class Person {
+	void wake() {
+		System.out.println("7시에 일어납니다.");
+	}
+}
+```
+```java
+package sec02.exam01;
+
+public class Anonymous {
+	//필드 초기값으로 대입
+	Person field = new Person() {
+		void work() {
+			System.out.println("출근합니다.");
+		}
+		@Override
+		void wake() {
+			System.out.println("6시에 일어납니다.");
+			work();
+		}
+	};
+	
+	void method1() {
+		//로컬변수값으로 대입
+		Person localVar = new Person() {
+			void walk() {
+				System.out.println("산책합니다.");
+			}
+			@Override
+			void wake() {
+				System.out.println("7시에 일어납니다.");
+				walk();
+			}
+		};
+		//로컬변수 사용
+		localVar.wake();
+	}
+	
+	void method2(Person person) {
+		person.wake();
+	}
+}
+```
+```java
+package sec02.exam01;
+
+public class AnonymousExample {
+	public static void main(String[] args) {
+		Anonymous anony = new Anonymous();
+		//익명 객체 필드 사용
+		anony.field.wake();
+		//익명 객체 로컬변수 사용
+		anony.method1();
+		//익명 객체 매개값 사용
+		anony.method2(
+			new Person() {
+				void study() {
+					System.out.println("공부합니다.");
+				}
+				@Override
+				void wake() {
+					System.out.println("8시에 일어납니다.");
+					study();
+				}
+			}
+		);
+	}
+}
+```
+
+**익명 구현 객체 생성**
+
+- 구현 클래스가 재사용되지 않고 오로지 특정 위치에서 사용할 경우라면 구현 클래스를 명시적으로 선언하는 것보다 익명 구현 객체를 생성해서 사용하는 것이 좋은 방법이다
+
+```java
+package sec02.exam02;
+
+public interface RemoteControl {
+	public void turnOn();
+	public void turnOff();
+}
+```
+```java
+package sec02.exam02;
+
+public class Anonymous {
+	//필드 초기값으로 대입
+	RemoteControl field = new RemoteControl() {
+		@Override
+		public void turnOn() {
+			System.out.println("TV를 켭니다.");
+		}
+		@Override
+		public void turnOff() {
+			System.out.println("TV를 끕니다.");
+		}
+	};
+	
+	void method1() {
+		//로컬변수값으로 대입
+		RemoteControl localVar = new RemoteControl() {
+			@Override
+			public void turnOn() {
+				System.out.println("Audio를 켭니다.");
+			}
+			@Override
+			public void turnOff() {
+				System.out.println("Audio를 끕니다.");
+			}
+		};
+		//로컬변수 사용
+		localVar.turnOn();
+	}
+	
+	void method2(RemoteControl rc) {
+		rc.turnOn();
+	}
+}
+```
+```java
+package sec02.exam02;
+
+public class AnonymousExample {
+	public static void main(String[] args) {
+		Anonymous anony = new Anonymous();
+		//익명 객체 필드 사용
+		anony.field.turnOn();
+		//익명 객체 로컬변수 사용
+		anony.method1();
+		//익명 객체 매개값 사용
+		anony.method2(
+			new RemoteControl() {
+				@Override
+				public void turnOn() {
+					System.out.println("SmartTV를 켭니다.");
+				}
+				@Override
+				public void turnOff() {
+					System.out.println("SmartTV를 끕니다.");
+				}
+			}
+		);
+	}
+}
+```
+
+- 아래는는 윈도우 및 안드로이드 등의 UI 프로그램에서 버튼의 클릭 이벤트를 처리하기 위해 익명 구현 객체를 이용하는 방법이다다
+
+```java
+package sec02.exam03;
+
+public class Button {
+	OnClickListener listener;
+	
+	void setOnClickListener(OnClickListener listener) {
+		this.listener = listener;
+	}
+	
+	void touch() {
+		listener.onClick();
+	}
+	
+	static interface OnClickListener {
+		void onClick();
+	}
+}
+
+```java
+package sec02.exam03;
+
+public class Window {
+	Button button1 = new Button();
+	Button button2 = new Button();
+	
+	//필드 초기값으로 대입
+	Button.OnClickListener listener = new Button.OnClickListener() {
+		@Override
+		public void onClick() {
+			System.out.println("전화를 겁니다.");
+		}
+	};
+	
+	Window() {
+		button1.setOnClickListener(listener);
+		
+		//매개값으로 대입
+		button2.setOnClickListener(new Button.OnClickListener() {
+			@Override
+			public void onClick() {
+				System.out.println("메시지를 보냅니다.");
+			}
+		});
+	}
+}
+```
+```java
+package sec02.exam03;
+
+public class Main {
+	public static void main(String[] args) {
+		Window w = new Window();
+		w.button1.touch();
+		w.button2.touch();
+	}
+}
+```
+
+**익명 객체의 로컬 변수 사용**
+- 다음 예제는 매개변수와 로컬변수가 익명 객체 내부에서 사용할 때 매개 변수와 로컬 변수가 final 특성을 갖고 있음을 보여준다
+
+```java
+package sec02.exam04;
+
+public interface Calculatable {
+	public int sum();
+}
+```
+```java
+package sec02.exam04;
+
+public class Anonymous {
+	private int field;
+	
+	public void method(final int arg1, int arg2) {
+		final int var1 = 0;
+		int var2 = 0;
+		
+		field = 10;
+		
+		//arg1 = 20; (x)
+		//arg2 = 20; (x)
+		
+		//var1 = 30; (x)
+		//var2 = 30; (x)
+		
+		Calculatable calc = new Calculatable() {
+			@Override
+			public int sum() {
+				int result = field + arg1 + arg2 + var1 + var2;
+				return result;
+			}
+		};
+		
+		System.out.println(calc.sum());
+	}
+}
+```
+
+```java
+package sec02.exam04;
+
+public class AnonymousExample {
+	public static void main(String[] args) {
+		Anonymous anony = new Anonymous();
+		anony.method(0, 0);
+	}
+}
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
