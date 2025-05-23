@@ -1,0 +1,270 @@
+---
+layout: post
+title:  "ECC 개발블로그 10주차"
+date:   2025-05-16
+categories: ECC
+---
+
+# Chapter 10 예외처리
+
+## 10-1 예외 클래스
+
+자바는 예외가 발생할 가능성이 높은 코드를 컴파일할 때 예외 처리 유무를 확인한다. 
+- 예외 처리 코드가 없으면 컴파일 되지 않는다.
+
+**예외와 예외 클래스**
+*일반예외*
+- 컴파일 체크 예외
+- 프로그램 실행 시 예외가 발생할 가능성이 높다
+*실행예외*
+- 컴파일 넌 체크 예외
+- 컴파일 과정에서 예외 차리 코드가 있는지 검사하지 않는다
+
+**실행예외**
+- 자바 컴파일러가 체크하지 않기 때문에 개발자의 경험에 의해서 예외처리코드를 작성해야 한다. 
+- 개발자가 실행 예외에 대해 예외 처리 코드를 넣지 않으면 해당 예외가 발생하면 프로그램은 곧바로 종료된다.
+
+*NullPointerException*
+- 자바 프로그램에서 가장 빈번하게 발생하는 실행 예외이다.
+- 객체 참조가 없는 상태에 발생한다
+
+```java
+package sec01.exam01;
+
+public class NullPointerExceptionExample {
+	public static void main(String[] args) {
+		String data = null;
+		System.out.println(data.toString());
+	}
+}
+
+```
+
+*ArrayIndexOutOfBoundsExeception*
+- 배열에서 인덱스 범위를 초과할 경우 실행 예외인 java.lang.ArrayIndexOutOfBoundsExeception이 발생한다.
+
+```java
+package sec01.exam02;
+
+public class ArrayIndexOutOfBoundsExceptionExample {
+	public static void main(String[] args) {
+		String data1 = args[0];
+		String data2 = args[1];
+		
+		System.out.println("args[0]: " + data1);
+		System.out.println("args[1]: " + data2);
+	}
+}
+```
+위 예제에서 5라인에서 ArrayIndexOutOfBoundsExeception이 발생한다. 
+
+아래와 같이 수정하면 ArrayIndexOutOfBoundsExeception이 발생하지 않는 좋은 프로그램이 된다.
+- 배열을 읽기 전에 배열의 길이를 먼저 조사하는 것이다.
+
+```java
+package sec01.exam03;
+
+public class ArrayIndexOutOfBoundsExceptionExample {
+	public static void main(String[] args) {
+		if(args.length == 2) {
+			String data1 = args[0];
+			String data2 = args[1];
+			System.out.println("args[0]: " + data1);
+			System.out.println("args[1]: " + data2);
+		} else {
+			System.out.println("두개의 실행 매개값이 필요합니다.");
+		}
+	}
+}
+```
+
+*NumberFormatException*
+- 문자열로 되어있는 데이터를 숫자로 변경하는 경우
+- 숫자로 변환될 수 없는 문자가 포함되어있을때
+
+```java
+package sec01.exam04;
+
+public class NumberFormatExceptionExample {
+	public static void main(String[] args) {
+		String data1 = "100";
+		String data2 = "a100";
+				
+		int value1 = Integer.parseInt(data1);
+		int value2 = Integer.parseInt(data2);
+		
+		int result = value1 + value2;
+		System.out.println(data1 + "+" + data2 + "=" + result);
+	}
+}
+```
+data2 변수의 a100 문자열은 숫자로 변환할 수 없기에 NumberFormatException이 발생한다
+
+*ClassCastException*
+- 타입 변환은 상위클래스와 하위 클래스 간에 발생하고 구현 클래스와 인터페이스 간에도 발생한다.
+- ClassCastException을 발생시키지 않으려면 타입 변환 전에 변환이 가능한지 instanceof 연산자로 확인하는 것이 좋다.
+
+```java
+package sec01.exam05;
+
+public class ClassCastExceptionExample {
+	public static void main(String[] args) {
+		Dog dog = new Dog();
+		changeDog(dog);
+		
+		Cat cat = new Cat();
+		changeDog(cat);
+	}
+	
+	public static void changeDog(Animal animal) {
+		//if(animal instanceof Dog) {
+			Dog dog = (Dog) animal; 				//ClassCastException 발생 가능
+		//} 
+	}
+}
+
+class Animal {}
+class Dog extends Animal {}
+class Cat extends Animal {}
+```
+
+14라인에서 ClassCastException이 발생한다. 그 이유는 9라인에서 cat객체를 매개값으로 주어진 Dog타입으로 변환할 수 없기 때문이다.
+
+
+## 10-2 예외처리
+
+예외처리: 프로그램에서 예외가 발생했을 경우 프로그램의 갑작스러운 종료를 막고. 정상 실행을 유지할 수 있도록 처리하는 것을 말한다
+
+
+**예외처리코드**
+
+-try-catch-finally
+
+```java
+package sec02.exam01;
+
+public class TryCatchFinallyExample {
+	public static void main(String[] args) {
+		try {
+			Class clazz = Class.forName("String2");
+		} catch(ClassNotFoundException e) {
+			System.out.println("클래스가 존재하지 않습니다.");
+		}
+	}
+}
+```
+위 예제를 실행하면 6라인에서 ClassNotFoundException 이 발생한다.
+
+```java
+package sec02.exam02;
+
+public class TryCatchFinallyRuntimeExceptionExample {
+	public static void main(String[] args) {
+		String data1 = null;
+		String data2 = null;
+		try {
+			data1 = args[0];
+			data2 = args[1];
+		} catch(ArrayIndexOutOfBoundsException e) {
+			System.out.println("실행 매개값의 수가 부족합니다.");
+			return;
+		} 
+		
+		try { 
+			int value1 = Integer.parseInt(data1);
+			int value2 = Integer.parseInt(data2);
+			int result = value1 + value2;
+			System.out.println(data1 + "+" + data2 + "=" + result);
+		} catch(NumberFormatException e) {
+			System.out.println("숫자로 변환할 수 없습니다.");
+		} finally {
+			System.out.println("다시 실행하세요.");
+		}
+	}
+}
+```
+
+**예외 종류에 따른 처리 코드**
+
+*다중 catch*
+-예외 별로 예외 처리 코드를 다르게 하기 위함
+
+```java
+package sec02.exam03;
+
+public class CatchByExceptionKindExample {
+	public static void main(String[] args) {
+		try {
+			String data1 = args[0];
+			String data2 = args[1];
+			int value1 = Integer.parseInt(data1);
+			int value2 = Integer.parseInt(data2);
+			int result = value1 + value2;
+			System.out.println(data1 + "+" + data2 + "=" + result);
+		} catch(ArrayIndexOutOfBoundsException e) {
+			System.out.println("실행 매개값의 수가 부족합니다.");
+		} catch(NumberFormatException e) {
+			System.out.println("숫자로 변환할 수 없습니다.");
+		} finally {
+			System.out.println("다시 실행하세요.");
+		}
+	}
+}
+```
+
+*catch 순서*
+-다중 catch블록 작성할 때 주의할 점은 사위 예외 클래스가 하위 예외 클래스보다 아래쪽에 위치해야한다는 것이다.
+
+```java
+package sec02.exam04;
+
+public class CatchOrderExample {
+	public static void main(String[] args) {
+		try {
+			String data1 = args[0];
+			String data2 = args[1];
+			int value1 = Integer.parseInt(data1);
+			int value2 = Integer.parseInt(data2);
+			int result = value1 + value2;
+			System.out.println(data1 + "+" + data2 + "=" + result);
+		} catch(ArrayIndexOutOfBoundsException e) {
+			System.out.println("실행 매개값의 수가 부족합니다.");
+		} catch(Exception e) {
+			System.out.println("실행에 문제가 있습니다.");
+		} finally {
+			System.out.println("다시 실행하세요.");
+		}
+	}
+}
+```
+
+*예외 떠넘기기*
+- 경우에 따라서 메소드를 호출한 곳으로 예외를 떠넘길 수 있다.
+- 이때 사용하는 키워드가 throws 키워드이다.
+throw 키워드: 메소드 선언부 끝에 작성되어 메소드에서 처리하지 않은 예외를 호출한 곳으로 떠넘기는 역할을 한다.
+- 키워드 뒤에 떠넘길 예외 클래스를 쉼표로 구분해서 나열해주면 된다
+
+```java
+package sec02.exam05;
+
+public class ThrowsExample {
+	public static void main(String[] args) {
+		try {
+			findClass();
+		} catch(ClassNotFoundException e) {
+			System.out.println("클래스가 존재하지 않습니다.");
+		}
+	}
+	
+	public static void findClass() throws ClassNotFoundException {
+		Class clazz = Class.forName("java.lang.String2");
+	}
+}
+
+```
+
+
+
+
+
+
