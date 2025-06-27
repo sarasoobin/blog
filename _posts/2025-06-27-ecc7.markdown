@@ -1,0 +1,777 @@
+---
+layout: post
+title:  "ECC 개발블로그 15주차"
+date:   2025-06-27
+categories: ECC
+---
+
+# 입출력 스트림
+자바에서 데이터는 스트림을 통햐 입출력된다
+
+## 입출력 스트림의 종류
+
+1. 바이트 기반 스트림
+2. 문자 기반 스트림
+
+## 바이트 스트림: OutputStream
+
+**write(int b) 메소드**
+
+1byte 씩 출력하기
+
+```java
+package sec01.exam01;
+
+import java.io.FileOutputStream;
+import java.io.OutputStream;
+
+public class WriteExample {
+	public static void main(String[] args) throws Exception {
+		OutputStream os = new FileOutputStream("C:/Temp/test1.db");
+		
+		byte a = 10;
+		byte b = 20;
+		byte c = 30;
+		
+		os.write(a);
+		os.write(b);
+		os.write(c);
+		
+		os.flush();
+		os.close();
+	}
+}
+```
+**write(byte[]b) 메소드**
+
+배열 전체 출력하기
+
+```java
+package sec01.exam02;
+
+import java.io.FileOutputStream;
+import java.io.OutputStream;
+
+public class WriteExample {
+	public static void main(String[] args) throws Exception {
+		OutputStream os = new FileOutputStream("C:/Temp/test2.db");
+		
+		byte[] array =  { 10, 20, 30 };
+		
+		os.write(array);
+		
+		os.flush();
+		os.close();
+	}
+}
+```
+**write(byte[]b, int off, int len) 메소드**
+
+배열 일부 출력하기
+
+```java
+package sec01.exam03;
+
+import java.io.FileOutputStream;
+import java.io.OutputStream;
+
+public class WriteExample {
+	public static void main(String[] args) throws Exception {
+		OutputStream os = new FileOutputStream("C:/Temp/test3.db");
+		
+		byte[] array =  { 10, 20, 30, 40, 50 };
+		
+		os.write(array, 1, 3);
+		
+		os.flush();
+		os.close();
+	}
+}
+```
+
+## 바이트 입력 스트림: intputStream
+
+**read() 메소드**
+
+```java
+package sec01.exam04;
+
+import java.io.FileInputStream;
+import java.io.InputStream;
+
+public class ReadExample {
+	public static void main(String[] args) throws Exception {
+		InputStream is = new FileInputStream("C:/Temp/test1.db");
+		while(true) {
+			int data = is.read();
+			if(data == -1) break;
+			System.out.println(data);
+		}
+		is.close();
+	}
+}
+```
+
+**read(byte[]b) 메소드**
+
+```java
+package sec01.exam05;
+
+import java.io.FileInputStream;
+import java.io.InputStream;
+
+public class ReadExample {
+	public static void main(String[] args) throws Exception {
+		InputStream is = new FileInputStream("C:/Temp/test2.db");
+		
+		byte[] buffer = new byte[100];
+		
+		while(true) {
+			int readByteNum = is.read(buffer);
+			if(readByteNum == -1) break;
+			for(int i=0; i<readByteNum; i++) {
+				System.out.println(buffer[i]);
+			}
+		}
+		
+		is.close();
+	}
+}
+```
+
+**read(byte[]b, int off, int len) 메소드**
+
+```java
+package sec01.exam06;
+
+import java.io.FileInputStream;
+import java.io.InputStream;
+
+public class ReadExample {
+	public static void main(String[] args) throws Exception {
+		InputStream is = new FileInputStream("C:/Temp/test3.db");
+		
+		byte[] buffer = new byte[5];
+		
+		int readByteNum = is.read(buffer, 2, 3);
+		if(readByteNum != -1) {
+			for(int i=0; i<buffer.length; i++) {
+				System.out.println(buffer[i]);
+			}
+		}
+		
+		is.close();
+	}
+}
+```
+
+## 문자 출력 스트림: Writer
+
+**write(int c)메소드**
+
+```java
+package sec01.exam07;
+
+import java.io.FileWriter;
+import java.io.Writer;
+
+public class WriteExample {
+	public static void main(String[] args) throws Exception {
+		Writer writer = new FileWriter("C:/Temp/test7.txt");
+		
+		char a = 'A';
+		char b = 'B';
+		char c = 'C';
+		
+		writer.write(a);
+		writer.write(b);
+		writer.write(c);
+		
+		writer.flush();
+		writer.close();
+	}
+}
+```
+**write(char[] cbuf)메소드**
+
+write(char[] cbuf)메소드는 매개값으로 주어진 char[] 배열의 모든 문자를 출력 스트림으로 보낸다
+
+```java
+package sec01.exam08;
+
+import java.io.FileWriter;
+import java.io.Writer;
+
+public class WriteExample {
+	public static void main(String[] args) throws Exception {
+		Writer writer = new FileWriter("C:/Temp/test8.txt");
+		
+		char[] array = { 'A', 'B', 'C' };
+		
+		writer.write(array);
+		
+		writer.flush();
+		writer.close();
+	}
+}
+```
+
+**write(char[] cbuf, int off, int len)메소드**
+write(char[] cbuf, int off, int len)메소드는 cbuf[off] 부터 len 개의 문자를 출력 스트림으로 보낸다
+
+```java
+package sec01.exam09;
+
+import java.io.FileWriter;
+import java.io.Writer;
+
+public class WriteExample {
+	public static void main(String[] args) throws Exception {
+		Writer writer = new FileWriter("C:/Temp/test9.txt");
+		
+		char[] array = { 'A', 'B', 'C', 'D', 'E' };
+		
+		writer.write(array, 1, 3);
+		
+		writer.flush();
+		writer.close();
+	}
+}
+```
+**write(String str)와 write(String str, int off,int len) 메소드**
+
+write(String str)은 문자열 전체를 출력 스트림으로 보내고 write(String str, int off,int len)은 문자열 off순번 부터 len개 까지의 문자를 보낸다
+
+```java
+package sec01.exam10;
+
+import java.io.FileWriter;
+import java.io.Writer;
+
+public class WriteExample {
+	public static void main(String[] args) throws Exception {
+		Writer writer = new FileWriter("C:/Temp/test8.txt");
+		
+		String str = "ABC";
+		
+		writer.write(str);
+		
+		writer.flush();
+		writer.close();
+	}
+}
+```
+
+## 문자 입력 스트림:Reader
+
+**read()메소드**
+
+```java
+package sec01.exam11;
+
+import java.io.FileReader;
+import java.io.Reader;
+
+public class ReadExample {
+	public static void main(String[] args) throws Exception {
+		Reader reader = new FileReader("C:/Temp/test7.txt");
+		while(true) {
+			int data = reader.read();
+			if(data == -1) break;
+			System.out.println((char)data);
+		}
+		reader.close();
+	}
+}
+```
+
+**read(char[] cbuf)메소드**
+read(char[] cbuf)메소드는 입력 스트림으로부터 매개값으로 주어진 문자 배열의 길이만큼 문자열을 읽고 배열에 저장한다. 그리고 읽은 문자 수를 리턴한다
+
+```java
+package sec01.exam12;
+
+import java.io.FileReader;
+import java.io.Reader;
+
+public class ReadExample {
+	public static void main(String[] args) throws Exception {
+		Reader reader = new FileReader("C:/Temp/test8.txt");
+		
+		char[] buffer = new char[100];
+		
+		while(true) {
+			int readCharNum = reader.read(buffer);
+			if(readCharNum == -1) break;
+			for(int i=0; i<readCharNum; i++) {
+				System.out.println(buffer[i]);
+			}
+		}
+		
+		reader.close();
+	}
+}
+```
+
+**read(char[] cbuf, int off, int len)메소드**
+
+
+```java
+package sec01.exam13;
+
+import java.io.FileReader;
+import java.io.Reader;
+
+public class ReadExample {
+	public static void main(String[] args) throws Exception {
+		Reader reader = new FileReader("C:/Temp/test9.txt");
+		
+		char[] buffer = new char[5];
+		
+		int readCharNum = reader.read(buffer, 2, 3);
+		if(readCharNum != -1) {
+			for(int i=0; i<buffer.length; i++) {
+				System.out.println(buffer[i]);
+			}
+		}
+		
+		reader.close();
+	}
+}
+```
+
+# 14-2 보조 스트림
+
+*보조스트림* 이란 다른 스트림과 연결이 되어 여러 가지 편리한 기능을 제공해주는 스트림
+
+## 보조스트림 연결하기
+
+보조스트림 변수= new 보조스트림(연결스트림)
+
+## 문자 변환 보조 스트림
+
+**OutputStreamWriter**
+
+Writer writer= new OutputStreamWriter(바이트 기반 출력 스트림);
+
+**inputStreamReader**
+
+Reader reader= new InputStreamReader(바이트 기반 입력 스트림);
+
+```java
+package sec02.exam01;
+
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.io.Reader;
+import java.io.Writer;
+
+public class CharacterConvertStreamExample {
+	public static void main(String[] args) throws Exception {
+		write("문자 변환 스트림을 사용합니다.");
+		String data = read();
+		System.out.println(data);
+	}
+	
+	public static void write(String str) throws Exception {
+		FileOutputStream fos = new FileOutputStream("C:/Temp/test1.txt");
+		Writer writer = new OutputStreamWriter(fos);
+		writer.write(str);
+		writer.flush();
+		writer.close();
+	}
+	
+	public static String read() throws Exception {
+		FileInputStream fis = new FileInputStream("C:/Temp/test1.txt");
+		Reader reader = new InputStreamReader(fis);		
+		char[] buffer = new char[100];
+		int readCharNum = reader.read(buffer);
+		reader.close();
+		String data = new String(buffer, 0, readCharNum);
+		return data;
+	}
+}
+```
+
+## 성능 향상 보조 스트림
+
+버퍼와 작업함으로써 실행 성능을 향상시킬 수 있다
+
+**BufferedOutputStream 과 BufferedWriter**
+
+BufferedOutputStream은 바이트 기반 출력 스트림에 연결되어 버퍼를 제공해주는 보조스트림이고 BufferedWrite는 문자 기반 출력 스트림에 연결되어 버퍼를 제공해주는 보조스트림이다
+
+
+**BufferedOutputStream 과 BufferedReader**
+
+실행 결과를 보면 보조스트림을 사용했을 때 훨씬 성능이 좋아지는 것을 알 수 있다
+
+```java
+package sec02.exam02;
+
+import java.io.*;
+
+public class NonBufferVsBufferExample {
+	public static void main(String[] args) throws Exception {
+		String originalFilePath1 = NonBufferVsBufferExample.class.getResource("originalFile1.jpg").getPath();
+		String targetFilePath1 = "C:/Temp/targetFile1.jpg";
+		FileInputStream fis = new FileInputStream(originalFilePath1);
+		FileOutputStream fos = new FileOutputStream(targetFilePath1);
+		
+		String originalFilePath2 = NonBufferVsBufferExample.class.getResource("originalFile2.jpg").getPath();
+		String targetFilePath2 = "C:/Temp/targetFile2.jpg";
+		FileInputStream fis2 = new FileInputStream(originalFilePath2);
+		FileOutputStream fos2 = new FileOutputStream(targetFilePath2);
+		BufferedInputStream bis = new BufferedInputStream(fis2);
+		BufferedOutputStream bos = new BufferedOutputStream(fos2);
+		
+		long nonBufferTime = copy(fis, fos);
+		System.out.println("버퍼를 사용하지 않았을 때:\t" + nonBufferTime + "ns");
+		
+		long bufferTime = copy(bis, bos);
+		System.out.println("버퍼를 사용했을 때:\t\t" + bufferTime + "ns");
+		
+		fis.close();
+		fos.close();
+		bis.close();
+		bos.close();
+	}
+	
+	static int data = -1;
+	public static long copy(InputStream is, OutputStream os) throws Exception {
+		long start = System.nanoTime();
+		while(true) {
+			data = is.read();
+			if(data == -1) break;
+			os.write(data);
+		}
+		os.flush();
+		long end = System.nanoTime();
+		return (end-start);
+	}
+}
+```
+
+```java
+package sec02.exam03;
+
+import java.io.*;
+
+public class ReadLineExample {
+	public static void main(String[] args) throws Exception {
+		Reader reader = new FileReader(
+			ReadLineExample.class.getResource("language.txt").getPath()
+		);
+		
+		BufferedReader br = new BufferedReader(reader);
+		
+		while(true) {
+			String data = br.readLine();
+			if(data == null) break;
+			System.out.println(data);
+		}
+		
+		br.close();
+	}
+}
+```
+
+## 기본 타입 입출력 보조 스트림
+
+DataInputStream 과 DataOutStream 보조스트림을 연결하면 기본 타입인 boolean, char, short, int, long, float, double을 입출력할 수 있다
+
+```java
+package sec02.exam04;
+
+import java.io.*;
+
+public class DataInputOutputStreamExample {
+	public static void main(String[] args) throws Exception {
+		FileOutputStream fos = new FileOutputStream("C:/Temp/primitive.db");
+		DataOutputStream dos = new DataOutputStream(fos);
+		
+		dos.writeUTF("홍길동");
+		dos.writeDouble(95.5);
+		dos.writeInt(1);
+		
+		dos.writeUTF("감자바");
+		dos.writeDouble(90.3);
+		dos.writeInt(2);
+		
+		dos.flush(); dos.close(); fos.close();
+		
+		FileInputStream fis = new FileInputStream("C:/Temp/primitive.db");
+		DataInputStream dis = new DataInputStream(fis);
+		
+		for(int i=0; i<2; i++) {
+			String name = dis.readUTF();
+			double score = dis.readDouble();
+			int order = dis.readInt();
+			System.out.println(name + " : " + score + " : " + order);
+		}
+		
+		dis.close(); fis.close();
+	}
+}
+
+```
+
+## 프린터 보조 스트림
+
+```java
+package sec02.exam05;
+
+import java.io.FileOutputStream;
+import java.io.PrintStream;
+
+public class PrintStreamExample {
+	public static void main(String[] args) throws Exception {
+		FileOutputStream fos = new FileOutputStream("C:/Temp/printstream.txt");
+		PrintStream ps = new PrintStream(fos);
+		
+		ps.println("[프린터 보조 스트림]");
+		ps.print("마치 ");
+		ps.println("프린터가 출력하는 것처럼 ");
+		ps.println("데이터를 출력합니다.");
+		
+		ps.flush();
+		ps.close();
+	}
+}
+```
+
+## 객체 입출력 보조 스트림
+
+```java
+package sec02.exam06;
+
+import java.io.*;
+import java.text.SimpleDateFormat;
+import java.util.*;
+
+public class ObjectStreamExample {
+	public static void main(String[] args) throws Exception {
+		writeList();
+		List<Board> list = readList();
+		
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+		for(Board board : list) {
+			System.out.println(
+				board.getBno() + "\t" + board.getTitle() + "\t" + 
+				board.getContent() + "\t" + board.getWriter() + "\t" +
+				sdf.format(board.getDate())
+			);
+		}
+	}
+	
+	public static void writeList() throws Exception {
+		List<Board> list = new ArrayList<>();
+		
+		list.add(new Board(1, "제목1", "내용1", "글쓴이1", new Date()));
+		list.add(new Board(2, "제목2", "내용2", "글쓴이2", new Date()));
+		list.add(new Board(3, "제목3", "내용3", "글쓴이3", new Date()));
+		
+		FileOutputStream fos = new FileOutputStream("C:/Temp/board.db");
+		ObjectOutputStream oos = new ObjectOutputStream(fos);
+		oos.writeObject(list);
+		oos.flush();
+		oos.close();
+	}
+	
+	public static List<Board> readList() throws Exception {
+		FileInputStream fis = new FileInputStream("C:/Temp/board.db");
+		ObjectInputStream ois = new ObjectInputStream(fis);
+		List<Board> list = (List<Board>) ois.readObject();
+		return list;
+	}
+}
+```
+
+```java
+package sec02.exam06;
+
+import java.io.Serializable;
+import java.util.Date;
+
+public class Board implements Serializable {
+	private int bno;
+	private String title;
+	private String content;
+	private String writer;
+	private Date date;
+	
+	public Board(int bno, String title, String content, String writer, Date date) {
+		this.bno = bno;
+		this.title = title;
+		this.content = content;
+		this.writer = writer;
+		this.date = date;
+	}
+	
+	public int getBno() { return bno; }
+	public void setBno(int bno) { this.bno = bno; }
+	public String getTitle() { return title; }
+	public void setTitle(String title) { this.title = title; }
+	public String getContent() { return content; }
+	public void setContent(String content) { this.content = content; }
+	public String getWriter() { return writer; }
+	public void setWriter(String writer) { this.writer = writer; }
+	public Date getDate() { return date; }
+	public void setDate(Date date) { this.date = date; }
+}
+```
+
+# 입출력 관련 API
+
+**System.in 필드**
+
+```java
+package sec03.exam01;
+
+import java.io.*;
+
+public class GetLineStringFromKeyboard {
+	public static void main(String[] args) throws Exception {
+		InputStream is = System.in;
+		Reader reader = new InputStreamReader(is);
+		BufferedReader br = new BufferedReader(reader);
+
+		while(true) {
+			System.out.print("입력하세요: ");
+			String lineStr = br.readLine();
+			if(lineStr.equals("q") || lineStr.equals("quit")) break;
+			System.out.print("입력된내용: " + lineStr);
+			System.out.println();
+		}
+		
+		br.close();
+	}
+}
+```
+
+```java
+package sec03.exam02;
+
+public class Product {
+	private int pno;
+	private String name;
+	private int price;
+	private int stock;
+	
+	public int getPno() { return pno; }
+	public void setPno(int pno) { this.pno = pno; }
+	public String getName() { return name; }
+	public void setName(String name) { this.name = name; }
+	public int getPrice() { return price; }
+	public void setPrice(int price) { this.price = price; }
+	public int getStock() { return stock; }
+	public void setStock(int stock) { this.stock = stock; }
+}
+```
+```java
+package sec03.exam02;
+
+import java.util.*;
+
+public class ProductStorage {
+	private List<Product> list = new ArrayList<>();
+	private Scanner scanner = new Scanner(System.in);
+	private int counter;
+	
+	public void showMenu() {
+		while(true) {
+			System.out.println("--------------------------------");
+			System.out.println("1.등록  |  2.목록   |  3.종료");
+			System.out.println("--------------------------------");
+			
+			System.out.print("선택: ");
+			String selectNo = scanner.nextLine();
+			switch(selectNo) {
+				case "1": registerProduct(); break;
+				case "2": showProducts(); break;
+				case "3": return;
+			}
+		}
+	}
+	
+	public void registerProduct() {
+		try {
+			Product product = new Product();
+			product.setPno(++counter);
+			
+			System.out.print("상품명: ");
+			product.setName(scanner.nextLine());
+			
+			System.out.print("가격: ");
+			product.setPrice(Integer.parseInt(scanner.nextLine()));
+			
+			System.out.print("재고: ");
+			product.setStock(Integer.parseInt(scanner.nextLine()));
+			
+			list.add(product);
+		} catch(Exception e) {
+			System.out.println("등록 에러: " + e.getMessage());
+		}
+	}
+	
+	public void showProducts() {
+		for(Product p : list) {
+			System.out.println(p.getPno() + "\t" + p.getName() + "\t" + p.getPrice() + "\t" + p.getStock());
+		}
+	}
+}
+```
+```java
+package sec03.exam02;
+
+public class ProductStorageExample {
+	public static void main(String[] args) {
+		ProductStorage productStoreage = new ProductStorage();
+		productStoreage.showMenu();
+	}
+}
+```
+
+## File 클래스
+
+java.io 패키지에서 제공하는 File 클래스는 파일 및 폴더 정보를 제공해주는 역할을 한다.
+
+```java
+package sec03.exam03;
+
+import java.io.File;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
+public class FileExample {
+	public static void main(String[] args) throws Exception {
+		File dir = new File("C:/Temp/images");
+		File file1 = new File("C:/Temp/file1.txt");
+		File file2 = new File("C:/Temp/file2.txt");
+		File file3 = new File("C:/Temp/file3.txt");
+		
+		if(dir.exists() == false) {  dir.mkdirs();  }
+		if(file1.exists() == false) {  file1.createNewFile();  }
+		if(file2.exists() == false) {  file2.createNewFile();  }
+		if(file3.exists() == false) {  file3.createNewFile();  }
+
+		File temp = new File("C:/Temp");
+		File[] contents = temp.listFiles();
+		
+		System.out.println("시간\t\t\t형태\t\t크기\t이름");
+		System.out.println("----------------------------------------------------------");
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd a HH:mm");
+		for(File file : contents) {
+			System.out.print(sdf.format(new Date(file.lastModified())));
+			if(file.isDirectory()) {
+				System.out.print("\t<DIR>\t\t\t" + file.getName());
+			} else {
+				System.out.print("\t\t\t" + file.length() + "\t" + file.getName());
+			}
+ 			System.out.println();
+		}
+	}
+}
+```
