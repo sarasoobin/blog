@@ -1,0 +1,104 @@
+---
+layout: default
+title: ""
+---
+
+<section class="hero">
+  <div class="hero-label">
+    <span class="label-line"></span>
+    <span class="label-text">DEVELOPER BLOG</span>
+    <span class="label-line"></span>
+  </div>
+  <h1 class="hero-title">이수빈의 개발 블로그</h1>
+  <p class="hero-sub">배우고, 만들고, 기록합니다. 개발 여정의 모든 순간을 코드와 글로 남깁니다.</p>
+  <div class="hero-cats">
+    <button class="cat-tag active" data-filter="all">All</button>
+    {% assign categories = site.posts | map: "categories" | join: "," | split: "," | uniq | sort %}
+    {% for cat in categories %}
+      {% if cat != "" %}
+      <button class="cat-tag" data-filter="{{ cat }}">{{ cat }}</button>
+      {% endif %}
+    {% endfor %}
+  </div>
+</section>
+
+{% assign featured = site.posts | first %}
+{% if featured %}
+{% assign fcat = featured.categories | first %}
+<section class="featured-section" data-category="{{ fcat }}">
+  <div class="section-header">
+    <h2 class="section-title">Featured</h2>
+  </div>
+  <a href="{{ featured.url | relative_url }}" class="featured-card">
+    <div class="featured-content">
+      <div class="featured-meta">
+        {% if fcat %}
+        <span class="badge">{{ fcat | upcase }}</span>
+        {% endif %}
+        <span class="featured-date">{{ featured.date | date: "%B %d, %Y" }}</span>
+      </div>
+      <h3 class="featured-title">{{ featured.title | escape }}</h3>
+      {% if featured.excerpt %}
+      <p class="featured-desc">{{ featured.excerpt | strip_html | truncate: 120 }}</p>
+      {% endif %}
+      <span class="featured-cta">Read Article &rarr;</span>
+    </div>
+  </a>
+</section>
+{% endif %}
+
+<section class="recent-section">
+  <div class="section-header">
+    <h2 class="section-title">Recent Posts</h2>
+  </div>
+  <div class="posts-grid">
+    {% for post in site.posts limit:6 %}
+    <a href="{{ post.url | relative_url }}" class="post-card" data-category="{{ post.categories | first }}">
+      <div class="card-body">
+        <div class="card-meta">
+          {% assign pcat = post.categories | first %}
+          {% if pcat %}
+          <span class="badge small">{{ pcat | upcase }}</span>
+          {% endif %}
+          <span class="card-date">{{ post.date | date: "%b %d, %Y" }}</span>
+        </div>
+        <h3 class="card-title">{{ post.title | escape }}</h3>
+        {% if post.excerpt %}
+        <p class="card-desc">{{ post.excerpt | strip_html | truncate: 90 }}</p>
+        {% endif %}
+        <span class="card-link">Read More &rarr;</span>
+      </div>
+    </a>
+    {% endfor %}
+  </div>
+</section>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  var buttons = document.querySelectorAll(".cat-tag");
+  var featuredSection = document.querySelector(".featured-section");
+  var cards = document.querySelectorAll(".post-card");
+
+  buttons.forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      var filter = this.getAttribute("data-filter");
+
+      buttons.forEach(function (b) { b.classList.remove("active"); });
+      this.classList.add("active");
+
+      if (featuredSection) {
+        featuredSection.style.display =
+          (filter === "all" || featuredSection.getAttribute("data-category") === filter) ? "" : "none";
+      }
+
+      cards.forEach(function (card) {
+        if (filter === "all" || card.getAttribute("data-category") === filter) {
+          card.style.display = "";
+        } else {
+          card.style.display = "none";
+        }
+      });
+    });
+  });
+});
+</script>

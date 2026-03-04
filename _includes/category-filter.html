@@ -1,0 +1,61 @@
+<style>
+  .category-filters {
+    margin-bottom: 2rem;
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+  .category-btn {
+    padding: 0.5rem 1.2rem;
+    border: 2px solid #4caf50;
+    border-radius: 24px;
+    background: #fff;
+    color: #2e7d32;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 600;
+    transition: all 0.2s;
+  }
+  .category-btn:hover {
+    background: #e8f5e9;
+  }
+  .category-btn.active {
+    background: #2e7d32;
+    color: #fff;
+    border-color: #2e7d32;
+  }
+</style>
+
+<div class="category-filters">
+  <button class="category-btn active" data-filter="all">전체</button>
+  {% assign categories = site.posts | map: "categories" | join: "," | split: "," | uniq | sort %}
+  {% for cat in categories %}
+    {% if cat != "" %}
+      <button class="category-btn" data-filter="{{ cat }}">{{ cat }}</button>
+    {% endif %}
+  {% endfor %}
+</div>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    var buttons = document.querySelectorAll(".category-btn");
+    var posts = document.querySelectorAll(".post-item");
+
+    buttons.forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        var filter = this.getAttribute("data-filter");
+
+        buttons.forEach(function (b) { b.classList.remove("active"); });
+        this.classList.add("active");
+
+        posts.forEach(function (post) {
+          if (filter === "all" || post.getAttribute("data-category") === filter) {
+            post.style.display = "";
+          } else {
+            post.style.display = "none";
+          }
+        });
+      });
+    });
+  });
+</script>
