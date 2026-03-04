@@ -1,0 +1,5 @@
+
+cmd
+
+cd C:\Users\saras\Documents\blog
+bundle exec jekyll serve
