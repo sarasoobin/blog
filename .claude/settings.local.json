@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(head:*)",
+      "Bash(bundle exec:*)",
+      "Bash(claude plugins:*)",
+      "Bash(bundle info:*)"
+    ]
+  }
+}
