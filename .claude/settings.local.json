@@ -4,7 +4,12 @@
       "Bash(head:*)",
       "Bash(bundle exec:*)",
       "Bash(claude plugins:*)",
-      "Bash(bundle info:*)"
+      "Bash(bundle info:*)",
+      "Bash(git add:*)",
+      "Bash(git tag:*)",
+      "Bash(git push:*)",
+      "Bash(gh run:*)",
+      "Bash(git commit:*)"
     ]
   }
 }
