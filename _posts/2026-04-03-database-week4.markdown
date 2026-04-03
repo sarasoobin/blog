@@ -456,3 +456,97 @@ GROUP BY cs.custid, cs.name;
 ```
 
 윈도우 함수를 쓰면 별도의 서브쿼리나 CTE 없이 한 번의 SELECT에서 집계와 순위를 동시에 처리할 수 있다. 쿼리가 짧아지는 건 덤이고, 실행 계획상으로도 효율적인 경우가 많다.
+
+---
+
+## 8. 프로그래머스 SQL 문제 풀이
+
+### 8-1. 중고거래 게시물 상태 분류 (CASE WHEN)
+
+```sql
+SELECT
+    BOARD_ID,
+    WRITER_ID,
+    TITLE,
+    PRICE,
+    CASE
+        WHEN STATUS = 'SALE' THEN '판매중'
+        WHEN STATUS = 'RESERVED' THEN '예약중'
+        WHEN STATUS = 'DONE' THEN '거래완료'
+    END AS STATUS
+FROM USED_GOODS_BOARD
+WHERE DATE_FORMAT(CREATED_DATE, '%Y-%m-%d') = '2022-10-05'
+ORDER BY BOARD_ID DESC;
+```
+
+- `CASE WHEN`으로 STATUS 코드를 한글 명칭으로 변환
+- `DATE_FORMAT`으로 작성일자를 포맷 변환하여 특정 날짜 필터링
+
+### 8-2. 게시글과 댓글 데이터 결합 (JOIN & 필터링)
+
+```sql
+SELECT
+    B.TITLE,
+    B.BOARD_ID,
+    R.REPLY_ID,
+    R.WRITER_ID,
+    R.CONTENTS,
+    DATE_FORMAT(R.CREATED_DATE, '%Y-%m-%d') AS CREATED_DATE
+FROM USED_GOODS_BOARD B
+JOIN USED_GOODS_REPLY R ON B.BOARD_ID = R.BOARD_ID
+WHERE B.CREATED_DATE BETWEEN '2022-10-01' AND '2022-10-31'
+ORDER BY R.CREATED_DATE ASC, B.TITLE ASC;
+```
+
+- 게시글 테이블(B)과 댓글 테이블(R)을 `JOIN`으로 연결
+- `BETWEEN`으로 2022년 10월 한 달 동안 작성된 게시글만 필터링
+- 정렬 기준: 1순위 댓글 작성일 오름차순, 2순위 게시글 제목 오름차순
+
+### 8-3. 카테고리별 도서 및 저자 정보 (JOIN)
+
+```sql
+SELECT
+    B.BOOK_ID,
+    A.AUTHOR_NAME,
+    DATE_FORMAT(B.PUBLISHED_DATE, '%Y-%m-%d') AS PUBLISHED_DATE
+FROM BOOK B
+JOIN AUTHOR A ON B.AUTHOR_ID = A.AUTHOR_ID
+WHERE B.CATEGORY = '경제'
+ORDER BY B.PUBLISHED_DATE ASC;
+```
+
+- 도서 테이블과 저자 테이블을 저자 ID 기준으로 조인
+- 카테고리가 '경제'인 도서만 추출 후 출판일 오름차순 정렬
+
+### 8-4. 카테고리별 상품 개수 구하기 (문자열 자르기 & GROUP BY)
+
+```sql
+SELECT
+    LEFT(PRODUCT_CODE, 2) AS CATEGORY,
+    COUNT(*) AS PRODUCTS
+FROM PRODUCT
+GROUP BY CATEGORY
+ORDER BY CATEGORY ASC;
+```
+
+- `LEFT(PRODUCT_CODE, 2)`로 상품코드 앞 2자리를 카테고리 코드로 추출
+- `GROUP BY`로 카테고리별 묶고 `COUNT(*)`로 개수 집계
+
+### 8-5. 식품 출고 여부 판별 (날짜 비교 & NULL 처리)
+
+```sql
+SELECT
+    ORDER_ID,
+    PRODUCT_ID,
+    DATE_FORMAT(OUT_DATE, '%Y-%m-%d') AS OUT_DATE,
+    CASE
+        WHEN OUT_DATE <= '2022-05-01' THEN '출고완료'
+        WHEN OUT_DATE > '2022-05-01' THEN '출고대기'
+        WHEN OUT_DATE IS NULL THEN '출고미정'
+    END AS 출고여부
+FROM FOOD_ORDER
+ORDER BY ORDER_ID ASC;
+```
+
+- `CASE WHEN`으로 출고일 기준 상태를 분기 처리
+- `OUT_DATE IS NULL`인 경우를 별도로 처리하여 '출고미정' 표시
