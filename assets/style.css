@@ -1,23 +1,25 @@
 /* ═══════════════════════════════════════
-   Premium Dark Blog — Design System
+   Soft Purple Blog — Design System
    ═══════════════════════════════════════ */
 
 /* — Reset & Base — */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
-  --bg-page: #0F0F0F;
-  --bg-surface: #0A0A0A;
-  --border: #1F1F1F;
-  --gold: #C9A962;
-  --gold-tint: rgba(201, 169, 98, 0.1);
-  --text-primary: #FAF8F5;
-  --text-secondary: #888888;
-  --text-tertiary: #666666;
-  --text-on-gold: #0A0A0A;
-  --info: #60A5FA;
-  --success: #4ADE80;
-  --error: #F87171;
+  --bg-page: #FAF7FF;
+  --bg-surface: #FFFFFF;
+  --bg-muted: #F2EBFC;
+  --border: #E5DEF5;
+  --gold: #7C3AED;
+  --gold-soft: #A78BFA;
+  --gold-tint: rgba(124, 58, 237, 0.08);
+  --text-primary: #1F1B2E;
+  --text-secondary: #5C5577;
+  --text-tertiary: #9B8FB8;
+  --text-on-gold: #FFFFFF;
+  --info: #6366F1;
+  --success: #10B981;
+  --error: #EF4444;
   --font-display: 'Playfair Display', Georgia, serif;
   --font-body: 'Manrope', -apple-system, sans-serif;
 }
@@ -478,15 +480,15 @@ img { max-width: 100%; height: auto; }
 
 .post-body code {
   font-family: 'JetBrains Mono', 'Fira Code', monospace;
-  background: rgba(201, 169, 98, 0.08);
-  border: 1px solid rgba(201, 169, 98, 0.2);
+  background: var(--gold-tint);
+  border: 1px solid rgba(124, 58, 237, 0.18);
   padding: 2px 6px;
   font-size: 0.875em;
   color: var(--gold);
 }
 
 .post-body pre {
-  background: var(--bg-surface);
+  background: var(--bg-muted);
   border: 1px solid var(--border);
   padding: 20px 24px;
   overflow-x: auto;
@@ -523,7 +525,7 @@ img { max-width: 100%; height: auto; }
 }
 
 .post-body th {
-  background: var(--bg-surface);
+  background: var(--bg-muted);
   font-weight: 600;
   font-size: 11px;
   text-transform: uppercase;
