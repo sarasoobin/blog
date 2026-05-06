@@ -9,7 +9,10 @@
       "Bash(git tag:*)",
       "Bash(git push:*)",
       "Bash(gh run:*)",
-      "Bash(git commit:*)"
+      "Bash(git commit:*)",
+      "PowerShell(gh run *)",
+      "WebFetch(domain:sarasoobin.github.io)",
+      "PowerShell(Get-Date *)"
     ]
   }
 }
