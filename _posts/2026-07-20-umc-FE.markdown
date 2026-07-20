@@ -1,3 +1,12 @@
+---
+layout: post
+title:  "UMC 팝잇 SelfStudy"
+date:   2026-07-20
+categories: UMC
+---
+
+
+
 # 리액트 폼 만들며 배운 것들 (팝잇 등록 폼 회고)
 
 > 공간 등록 폼(멀티스텝)을 만들며 배운 React/FE 개념 정리. 나중에 다시 볼 것들.
