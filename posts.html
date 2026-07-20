@@ -1,15 +1,16 @@
 ---
 layout: default
-title: ""
+title: Posts
+permalink: /posts/
 ---
 
-<section class="hero">
+<section class="hero posts-hero">
   <div class="hero-label">
     <span class="label-line"></span>
-    <span class="label-text">DEVELOPER BLOG</span>
+    <span class="label-text">ALL POSTS</span>
     <span class="label-line"></span>
   </div>
-  <h1 class="hero-title">이수빈의 개발 블로그</h1>
+  <h1 class="hero-title">전체 글</h1>
   <div class="hero-cats">
     <button class="cat-tag active" data-filter="all">All</button>
     {% assign categories = site.posts | map: "categories" | join: "," | split: "," | uniq | sort %}
@@ -21,35 +22,7 @@ title: ""
   </div>
 </section>
 
-{% assign featured = site.posts | first %}
-{% if featured %}
-{% assign fcat = featured.categories | first %}
-<section class="featured-section" data-category="{{ fcat }}">
-  <div class="section-header">
-    <h2 class="section-title">Featured</h2>
-  </div>
-  <a href="{{ featured.url | relative_url }}" class="featured-card">
-    <div class="featured-content">
-      <div class="featured-meta">
-        {% if fcat %}
-        <span class="badge">{{ fcat | upcase }}</span>
-        {% endif %}
-        <span class="featured-date">{{ featured.date | date: "%B %d, %Y" }}</span>
-      </div>
-      <h3 class="featured-title">{{ featured.title | escape }}</h3>
-      {% if featured.excerpt %}
-      <p class="featured-desc">{{ featured.excerpt | strip_html | truncate: 120 }}</p>
-      {% endif %}
-      <span class="featured-cta">Read Article &rarr;</span>
-    </div>
-  </a>
-</section>
-{% endif %}
-
 <section class="recent-section">
-  <div class="section-header">
-    <h2 class="section-title">All Posts</h2>
-  </div>
   <div class="posts-grid">
     {% for post in site.posts %}
     <a href="{{ post.url | relative_url }}" class="post-card" data-category="{{ post.categories | first }}">
@@ -70,33 +43,33 @@ title: ""
     </a>
     {% endfor %}
   </div>
+  <p class="posts-empty" hidden>해당 카테고리의 글이 없습니다.</p>
 </section>
 
 <script>
 document.addEventListener("DOMContentLoaded", function () {
   var buttons = document.querySelectorAll(".cat-tag");
-  var featuredSection = document.querySelector(".featured-section");
   var cards = document.querySelectorAll(".post-card");
+  var empty = document.querySelector(".posts-empty");
 
   buttons.forEach(function (btn) {
     btn.addEventListener("click", function () {
       var filter = this.getAttribute("data-filter");
+      var shown = 0;
 
       buttons.forEach(function (b) { b.classList.remove("active"); });
       this.classList.add("active");
 
-      if (featuredSection) {
-        featuredSection.style.display =
-          (filter === "all" || featuredSection.getAttribute("data-category") === filter) ? "" : "none";
-      }
-
       cards.forEach(function (card) {
         if (filter === "all" || card.getAttribute("data-category") === filter) {
           card.style.display = "";
+          shown++;
         } else {
           card.style.display = "none";
         }
       });
+
+      if (empty) { empty.hidden = shown > 0; }
     });
   });
 });
