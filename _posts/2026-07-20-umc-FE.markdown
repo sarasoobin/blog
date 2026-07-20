@@ -1,7 +1,7 @@
 ---
 layout: post
 title:  "UMC 팝잇 SelfStudy"
-date:   2026-07-20
+date:   2026-07-20 09:00:00 +0900
 categories: UMC
 ---
 
