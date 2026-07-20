@@ -1,0 +1,247 @@
+# 리액트 폼 만들며 배운 것들 (팝잇 등록 폼 회고)
+
+> 공간 등록 폼(멀티스텝)을 만들며 배운 React/FE 개념 정리. 나중에 다시 볼 것들.
+
+---
+
+## 1. React의 핵심 원리: "값이 바뀌면 화면을 다시 그린다"
+
+React는 **state(값)가 바뀔 때마다 컴포넌트를 처음부터 다시 실행**한다(= 리렌더링). 그때 안의 계산도 전부 다시 한다.
+
+그래서 "파생값"은 저장하지 않고 **매번 계산**하면 된다. 원본이 바뀌면 알아서 따라 바뀐다.
+
+```tsx
+// 면적(㎡)에서 평을 매번 계산 — 평은 저장 안 함
+const pyeong = form.area !== "" ? (Number(form.area) * 0.3025).toFixed(1) : "";
+
+// 보증금이 100 넘으면 에러 메시지 (파생값)
+const depositError =
+  Number(form.deposit) > 100 ? "보증금은 100만원 이하 입력해 주세요" : "";
+```
+
+핵심: 나는 **규칙만 선언**하고, 화면 갱신은 React가 알아서 한다 (**선언형**).
+
+---
+
+## 2. 제어 컴포넌트 (Controlled Component)
+
+입력을 **`value` + `onChange` 짝**으로 관리한다. 화면과 데이터가 항상 일치한다.
+
+```tsx
+<input
+  value={form.city}                                    // 보여줄 값
+  onChange={(e) => setValues({ city: e.target.value })} // 바뀌면 저장
+/>
+```
+
+- `value` = "이 칸은 이 값을 보여줘"
+- `onChange` = "타이핑하면 값을 갱신해"
+
+---
+
+## 3. 로컬 state vs 전역 store (Zustand)
+
+| | `useState` | Zustand store |
+|---|---|---|
+| 범위 | 그 컴포넌트 안 | 앱 전체 |
+| 페이지 이동 시 | 사라짐 | **유지됨** |
+| 용도 | 모달 열림 등 일시적 | 여러 화면에서 공유할 데이터 |
+
+멀티스텝 폼은 라우트가 분리돼 있어서, 로컬 state면 다음 단계로 가면 값이 날아간다 → **Zustand**로 유지.
+
+```tsx
+const form = useRegisterStore((s) => s.form);        // 값 꺼내기
+const setValues = useRegisterStore((s) => s.setValues); // 바꾸는 함수
+setValues({ city: "서울" }); // 넘긴 필드만 덮어씀
+```
+
+---
+
+## 4. useEffect + cleanup (뒷정리)
+
+"특정 순간에 실행 + 사라질 때 정리"를 담당. `return`이 **뒷정리 함수**.
+
+```tsx
+useEffect(() => {
+  const onKey = (e) => { if (e.key === "Escape") setIsOpen(false); };
+  document.addEventListener("keydown", onKey);
+
+  return () => document.removeEventListener("keydown", onKey); // 뒷정리
+}, [isOpen]);
+```
+
+정리를 안 하면 이벤트/구독이 계속 쌓여 문제가 생긴다 (메모리 누수 등).
+
+---
+
+## 5. useRef — DOM 요소 가리키기
+
+특정 HTML 요소를 "가리켜두는 리모컨". 클릭이 그 안인지 밖인지 판단할 때 유용.
+
+```tsx
+const containerRef = useRef<HTMLDivElement>(null);
+...
+<div ref={containerRef}>...</div>
+
+// 클릭이 이 div 밖이면 닫기
+if (!containerRef.current.contains(e.target)) setIsOpen(false);
+```
+
+---
+
+## 6. ⭐ stale-closure와 useEffect의 deps
+
+useEffect 안의 함수는 **"구독한 순간의 값"을 기억**한다. deps에 안 넣은 값은 **옛날 값(stale)** 을 본다.
+
+```tsx
+// ❌ deps=[isOpen] → 그 사이 startDate가 바뀌어도 핸들러는 옛날 값(null)을 봄
+useEffect(() => {
+  const onOutside = () => {
+    if (startDate && endDate) onConfirm(...); // startDate가 stale!
+  };
+  ...
+}, [isOpen]);
+
+// ✅ 쓰는 값을 deps에 넣으면 최신 값을 봄
+}, [isOpen, startDate, endDate, onConfirm]);
+```
+
+**규칙: useEffect 안에서 쓰는 값은 deps에 넣는다.**
+
+---
+
+## 7. 조건부 렌더링 & truthy/falsy
+
+```tsx
+{!error && <span>안내문</span>}          // error 없을 때만
+{i === 0 && <span>대표사진</span>}        // 첫 장일 때만
+{file ? file.name : placeholder}         // 삼항: 있으면 A, 없으면 B
+```
+
+**truthy/falsy 주의**: 빈 문자열 `""`만 falsy, **`"0"`(문자열 0)은 truthy**.
+그래서 "비었는지"는 `value !== ""`로 명확히 쓰는 게 좋다.
+
+---
+
+## 8. 논리 연산자 `||` vs `&&`
+
+| 기호 | 뜻 |
+|---|---|
+| `\|\|` (OR) | 하나라도 참이면 참 |
+| `&&` (AND) | 모두 참이어야 참 |
+
+```tsx
+const hasPrice = a !== "" || b !== "" || c !== "";  // 하나라도 입력
+const hasPeriod = start !== "" && end !== "";        // 둘 다 입력
+const isValid = hasPrice && hasPeriod && !error;     // 전부 만족
+```
+
+---
+
+## 9. 입력 제어: onKeyDown(막기) vs onChange(청소)
+
+숫자만 받으려면 두 개를 같이 쓴다 (2중 방어).
+
+```tsx
+// 입력 "전"에 막기 (타이핑) — preventDefault
+const blockNonNumeric = (e) => {
+  if (["e", "E", "+", "-", "."].includes(e.key)) e.preventDefault();
+};
+
+// 입력 "후"에 청소 (붙여넣기 포함) — 정규식으로 숫자 아닌 것 제거
+onChange={(e) => setValues({ deposit: e.target.value.replace(/[^0-9]/g, "") })}
+```
+
+- `onKeyDown` = 문지기 (들어오기 전 막음, 타이핑만)
+- `.replace` = 청소부 (들어온 것 치움, 붙여넣기까지)
+- 정규식 `/[^0-9]/g` = "0~9가 아닌 것 전부"
+
+---
+
+## 10. 컴포넌트 분리 & props
+
+반복 UI나 독립 기능은 하위 컴포넌트로 빼고, **데이터·행동을 props로** 넘긴다.
+
+```tsx
+{photos.map((photo, i) => (
+  <PhotoThumbnail
+    key={i}
+    photo={photo}                                   // 데이터
+    isFirst={i === 0}
+    onRemove={() => setPhotos((p) => p.filter((_, idx) => idx !== i))} // 행동
+  />
+))}
+```
+
+---
+
+## 11. 메모리 관리: createObjectURL / revokeObjectURL
+
+파일 미리보기 URL은 만들고 **반드시 해제**해야 메모리 누수가 없다.
+
+```tsx
+useEffect(() => {
+  const url = URL.createObjectURL(photo); // 미리보기 주소 생성
+  setUrl(url);
+  return () => URL.revokeObjectURL(url);  // 사라질 때 해제
+}, [photo]);
+```
+
+JSX에서 `src={URL.createObjectURL(photo)}`로 바로 쓰면 렌더마다 새 URL이 생겨 누수 → 위처럼 분리.
+
+---
+
+## 12. 배열 다루기: map / filter / spread
+
+```tsx
+options.map((o) => <Chip key={o} ... />)          // 목록 렌더
+prev.filter((_, idx) => idx !== i)                 // i번째 빼고 새 배열
+[...prev, ...newFiles]                             // 두 배열 합치기 (불변)
+{ ...state.form, ...values }                       // 객체 병합 (불변 업데이트)
+```
+
+**불변성**: 기존 걸 직접 바꾸지 않고 `...`로 새 걸 만든다 → React가 변화를 감지.
+
+---
+
+## 13. Date / 시간대(timezone) 함정
+
+`new Date("2026-06-21")`처럼 **날짜만** 주면 JS가 UTC로 해석 → 한국(+9)은 괜찮지만 미국(-)은 **하루 밀린다**.
+
+```tsx
+// ✅ 로컬 시간대로 안전 파싱
+const parseYmd = (ymd: string) => {
+  const [y, m, d] = ymd.split("-").map(Number);
+  return new Date(y, m - 1, d); // 로컬 자정 (month는 0부터라 -1)
+};
+```
+
+---
+
+## 14. Tailwind 팁
+
+```tsx
+// 임의 값
+className="w-[794px] text-[22px] size-[144px]"
+
+// 가상요소 겨냥 (number 스피너 숨기기)
+className="[appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none"
+
+// 조건부 클래스 (에러면 빨강)
+className={`border-2 ${error ? "border-danger" : "border-divider"}`}
+
+// 색은 컬러 토큰으로 (bg-primary O / bg-blue-500 X)
+```
+
+---
+
+## 15. `type="number"`의 함정
+
+`type="number"`는 `e`, `+`, `-`, `.`를 허용해서 **화면엔 보이는데 value는 `""`가 되는** 경우가 있다.
+→ `onKeyDown`으로 그 키들을 막거나, `type="text" + inputMode="numeric"`을 쓰기도 한다.
+
+---
+
+## 마무리 한 줄
+
+> **"값이 바뀌면 다시 계산·다시 그린다"** 는 React의 핵심을 잡으면, 파생값·조건부 렌더·유효성 검사가 다 같은 원리로 보인다.
