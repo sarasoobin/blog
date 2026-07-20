@@ -12,7 +12,12 @@
       "Bash(git commit:*)",
       "PowerShell(gh run *)",
       "WebFetch(domain:sarasoobin.github.io)",
-      "PowerShell(Get-Date *)"
+      "PowerShell(Get-Date *)",
+      "Bash(git mv *)",
+      "Bash(git check-ignore *)",
+      "Bash(echo \"exit=$?\")",
+      "Bash(git rm *)",
+      "Bash(curl -s -o /dev/null -w \"HTTP %{http_code}\\\\n\" http://localhost:4000/blog/)"
     ]
   }
 }

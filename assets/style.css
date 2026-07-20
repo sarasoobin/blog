@@ -1,25 +1,26 @@
 /* ═══════════════════════════════════════
-   Soft Purple Blog — Design System
+   Deep Green Blog — Design System
    ═══════════════════════════════════════ */
 
 /* — Reset & Base — */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
-  --bg-page: #FAF7FF;
+  --bg-page: #F4F8F6;
   --bg-surface: #FFFFFF;
-  --bg-muted: #F2EBFC;
-  --border: #E5DEF5;
-  --gold: #7C3AED;
-  --gold-soft: #A78BFA;
-  --gold-tint: rgba(124, 58, 237, 0.08);
-  --text-primary: #1F1B2E;
-  --text-secondary: #5C5577;
-  --text-tertiary: #9B8FB8;
+  --bg-muted: #E7F0EB;
+  --border: #D2E2D9;
+  /* --gold* are the accent tokens (name kept from the original theme) */
+  --gold: #14563C;
+  --gold-soft: #4E8F72;
+  --gold-tint: rgba(20, 86, 60, 0.08);
+  --text-primary: #10231B;
+  --text-secondary: #475C52;
+  --text-tertiary: #6E8579;
   --text-on-gold: #FFFFFF;
-  --info: #6366F1;
+  --info: #0F766E;
   --success: #10B981;
-  --error: #EF4444;
+  --error: #DC2626;
   --font-display: 'Playfair Display', Georgia, serif;
   --font-body: 'Manrope', -apple-system, sans-serif;
 }
@@ -481,7 +482,7 @@ img { max-width: 100%; height: auto; }
 .post-body code {
   font-family: 'JetBrains Mono', 'Fira Code', monospace;
   background: var(--gold-tint);
-  border: 1px solid rgba(124, 58, 237, 0.18);
+  border: 1px solid rgba(20, 86, 60, 0.18);
   padding: 2px 6px;
   font-size: 0.875em;
   color: var(--gold);
