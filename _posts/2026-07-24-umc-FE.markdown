@@ -1,0 +1,117 @@
+---
+layout: post
+title:  "UMC 팝잇 SelfStudy"
+date:   2026-07-24 09:00:00 +0900
+categories: UMC
+---
+
+# 리액트 폼 만들며 배운 것들 (팝잇 등록 폼 회고)
+
+> 공간 등록 폼(멀티스텝)을 만들며 배운 React/FE 개념 정리. 나중에 다시 볼 것들.
+
+---
+
+## 15. `type="number"`의 함정
+
+`type="number"`는 `e`, `+`, `-`, `.`를 허용해서 **화면엔 보이는데 value는 `""`가 되는** 경우가 있다.
+→ `onKeyDown`으로 그 키들을 막거나, `type="text" + inputMode="numeric"`을 쓰기도 한다.
+
+---
+
+## 16. 유효성 검사 패턴 (isValid + disabled)
+
+"필수값 다 채워야 다음 버튼 활성화"를 **파생값 + disabled**로 만든다.
+
+```tsx
+const isValid =
+  form.buildingType !== "" &&
+  form.address !== "" &&
+  form.detailAddress.trim() !== "";
+
+<Button disabled={!isValid} onClick={goNext}>다음으로</Button>
+```
+
+- `isValid`는 저장 안 하고 **매 렌더 계산**(파생값). 값이 바뀌면 자동으로 버튼 상태도 바뀜.
+- 서버 검증(2차) 전이라도 클라이언트에서 실수 방지 = UX 향상.
+
+---
+
+## 17. 공백만 입력 막기: `.trim()`
+
+`"   ".length`는 3이지만 `"   ".trim().length`는 0. 공백만 친 걸 통과시키지 않으려면 **길이·빈값 검사에 `.trim()`**.
+
+```tsx
+form.storeName.trim() !== ""          // 공백만 입력 방지
+form.buildingName.trim().length >= 4  // 앞뒤 공백 뺀 실제 글자 수
+```
+
+---
+
+## 18. 중복 제거 (DRY): 유틸로 분리
+
+같은 로직이 여러 파일에 흩어지면 **한 곳(유틸)** 으로 뺀다. 규칙이 바뀌어도 한 군데만 고치면 됨.
+
+```ts
+// shared/utils/sanitizeNumber.ts
+export const sanitizeNumber = (value: string) => value.replace(/[^0-9]/g, "");
+
+// shared/utils/numberInput.ts — 스피너 숨김 클래스 + 숫자 외 키 차단
+export const NO_SPINNER = "[appearance:textfield] ...";
+export const blockNonNumeric = (e) => { if (["e","+","-","."].includes(e.key)) e.preventDefault(); };
+```
+
+---
+
+## 19. 개수 제한: `slice` + `Math.max` (누적 기준 주의)
+
+새로 고른 것만이 아니라 **기존 것 포함 총합** 기준으로 잘라야 한다.
+
+```tsx
+// ❌ 새 파일만 10장 제한 → 기존 8장 + 새 5장 = 13장 가능
+...files.slice(0, 10)
+
+// ✅ 남은 자리만큼만 추가
+...files.slice(0, Math.max(0, 10 - prev.length))
+```
+
+`Math.max(0, ...)`는 이미 꽉 찼을 때 `slice(0, -1)` 같은 음수 사고를 막는다.
+
+---
+
+## 20. 주소 검색 (다음 우편번호) — 지번/도로명 함정
+
+`react-daum-postcode`로 팝업 검색. `onComplete(data)`에서 주소를 받는데, **사용자가 지번을 고르면 `roadAddress`(도로명)가 빈 값**일 수 있다.
+
+```tsx
+// 고른 타입에 맞는 주소를 써야 빈 값이 안 됨
+const address = data.userSelectedType === "R" ? data.roadAddress : data.jibunAddress;
+// data.sido("서울") / data.sigungu("강남구")도 같이 옴 → 지역 제한 검증에 사용
+```
+
+**엣지케이스**: 서울 주소 넣은 뒤 비서울을 고르면, 에러만 띄우고 값을 안 지우면 **기존 서울값이 남아 유효성 우회**됨 → 비허용 분기에서 **기존 값도 비워야** 함.
+
+---
+
+## 21. 접근성 (a11y) — 최소한 이것만이라도
+
+화면으로만 알 수 있는 정보를 **스크린리더·키보드** 사용자에게도 전달.
+
+```tsx
+// 라벨 없는 입력 → 이름 부여
+<input aria-label="금액" />
+
+// 모달 → 역할·이름·키보드 닫기
+<div role="dialog" aria-modal="true" aria-label="주소 검색">
+  <button aria-label="닫기" onClick={onClose}>×</button>
+</div>
+useEffect(() => {           // Esc로 닫기
+  const onKey = (e) => { if (e.key === "Escape") onClose(); };
+  document.addEventListener("keydown", onKey);
+  return () => document.removeEventListener("keydown", onKey);
+}, [isOpen, onClose]);
+
+// 선택 상태 토글 버튼 → aria-pressed
+<button aria-pressed={isSelected}>{date}</button>
+```
+
+- 이미지·아이콘: 의미 없으면 `alt=""`, 의미 있으면 설명. 장식 SVG는 `aria-hidden`.

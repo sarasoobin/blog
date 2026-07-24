@@ -23,7 +23,9 @@
       "Bash(curl -s -o /dev/null -w \"HTTP %{http_code}\\\\n\" \"https://sarasoobin.github.io/blog/posts/\")",
       "Bash(curl -s https://sarasoobin.github.io/blog/posts/?__CMDSUB_OUTPUT__)",
       "Read(//tmp/**)",
-      "Bash(curl -s \"https://sarasoobin.github.io/blog/feed.xml\")"
+      "Bash(curl -s \"https://sarasoobin.github.io/blog/feed.xml\")",
+      "PowerShell(\\(Invoke-RestMethod \"https://api.github.com/repos/sarasoobin/blog/actions/runs?per_page=3\"\\).workflow_runs | Select-Object display_title,status,conclusion,created_at | Format-List)",
+      "PowerShell($r = Invoke-WebRequest \"https://sarasoobin.github.io/blog/\" -UseBasicParsing; $r.Content -split \"`n\" | Select-String -Pattern \"card-title|featured-title|umc\" | Select-Object -First 20)"
     ]
   }
 }
