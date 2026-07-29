@@ -1,0 +1,283 @@
+---
+layout: post
+title:  "UMC 팝잇 SelfStudy(5)"
+date:   2026-07-29 09:00:00 +0900
+categories: UMC
+---
+
+## 🗓️ 2026-07-28~29 추가 — axios로 서버와 통신하기 (#134)
+
+### 45. axios = 코드로 누르는 `Execute` 버튼
+
+Swagger에서 `Try it out` → `Execute` 를 누르면 서버가 응답을 준다. 그걸 **버튼이 아니라 코드로** 하는 게 axios.
+
+```ts
+const res = await api.get("/api/v1/facilities");
+//    ↑ 요청 보내고 → 답 올 때까지 기다렸다가 → res에 담김
+```
+
+브라우저에 기본으로 있는 `fetch`와 비교하면:
+
+| | `fetch` (브라우저 기본) | `axios` |
+| --- | --- | --- |
+| 주소 | 매번 전체 URL | `baseURL` 한 번만 설정 |
+| JSON 변환 | `await res.json()` 한 단계 더 | 자동 |
+| **에러 처리** | **404·500도 "성공"으로 취급** | 자동으로 `catch`로 감 |
+| 토큰 첨부 | 요청마다 직접 헤더 작성 | 인터셉터로 한 번만 |
+| 타입 지정 | 불편 | `api.get<타입>()` 지원 |
+
+⭐ **제일 큰 차이는 에러 처리다.**
+
+```ts
+// fetch — 이 줄을 빼먹으면 404를 성공으로 착각한다
+const res = await fetch(url);
+if (!res.ok) throw new Error("실패");
+const data = await res.json();
+
+// axios — 400·401·404·500이면 알아서 에러 발생
+const res = await api.get(url);
+```
+
+💡 axios는 전부 Promise다 → 42번(비동기)에서 배운 `await`이 그대로 쓰인다.
+
+### 46. 인스턴스 = 설정을 미리 해둔 나만의 axios
+
+`axios.get("https://api.popit.co.kr/...")` 처럼 매번 전체 주소를 쓰면 세 가지 문제가 생긴다.
+
+1. 서버 주소가 바뀌면 **파일을 전부 찾아다니며** 수정
+2. 팀원 4명이 각자 타이핑 → **오타**
+3. 나중에 토큰을 붙일 때 **20군데를 다 고쳐야** 함
+
+그래서 **설정을 미리 담은 복사본**을 하나 만들어 팀 전체가 쓴다.
+
+```ts
+// src/shared/api/axios_instance.ts
+import axios from "axios";
+
+export const api = axios.create({
+  baseURL: import.meta.env.VITE_API_BASE_URL,       // 앞부분 자동으로 붙음
+  headers: { "Content-Type": "application/json" },  // "JSON 보낸다"고 미리 선언
+});
+```
+
+```ts
+api.get("/api/v1/facilities")   // → https://api.popit.co.kr/api/v1/facilities
+```
+
+⭐ **바뀔 수 있는 값은 한 곳에 모아둔다.** 주소가 바뀌어도 `.env` 한 줄만 고치면 전부 따라 바뀐다.
+
+### 47. 인터셉터 = 모든 요청이 지나가는 검색대
+
+인증이 필요한 API는 요청마다 `Authorization` 헤더가 필요하다. 없으면 이걸 20번 쓰게 된다.
+
+```ts
+await api.post("/api/v1/hosts", data, { headers: { Authorization: `Bearer ${token}` } });
+await api.post("/api/v1/spaces", data, { headers: { Authorization: `Bearer ${token}` } });
+// ... 한 군데만 빼먹어도 401
+```
+
+**인터셉터** = 요청이 나가기 **직전에 가로채서** 뭔가를 하는 장치(intercept = 가로채다). 공항 검색대처럼 모든 요청이 반드시 지나간다.
+
+```
+내 코드 api.post(...) → [인터셉터: 토큰 끼워넣기] → 서버로 발송
+```
+
+```ts
+api.interceptors.request.use((config) => {
+  const token = getAccessToken();
+  if (token) config.headers.Authorization = `Bearer ${token}`;
+  return config;
+});
+```
+
+이 10줄을 **한 번** 써두면 이후 모든 요청은 그냥 `api.post("/api/v1/hosts", data)` 로 끝난다. **빼먹을 수가 없다.**
+
+⭐ **토큰 꺼내는 곳은 함수 하나에 가둔다.**
+
+```ts
+export const getAccessToken = () =>
+  import.meta.env.VITE_DEV_ACCESS_TOKEN;   // TODO: 로그인 구현 후 authStore로 교체
+```
+
+로그인이 완성되면 이 **한 줄만** 바꾸면 된다. 인터셉터도 API 함수 20개도 손댈 필요 없다. (= "변할 것을 한 곳에 모은다" — 46번과 같은 원리)
+
+### 48. 제네릭 `<T>` — 붕어빵 틀
+
+팝잇 백엔드는 **모든 응답을 같은 봉투로 감싼다**(36번). 겉은 항상 같고 `result` 안만 다르다.
+
+```
+시설 목록:  { isSuccess, code, message, result: { facilities: [...] } }
+호스트 조회: { isSuccess, code, message, result: { id, businessName, ... } }
+                                                 ↑ 여기만 다름
+```
+
+봉투 타입을 API마다 만들면 20개가 된다. 그래서 **안쪽을 빈칸으로 두는** 문법이 제네릭.
+
+```ts
+export interface PopitResponse<T> {
+  isSuccess: boolean;
+  code: string;      // "FACILITY200_1", "HOST404_1" 처럼 도메인별 코드가 온다
+  message: string;
+  result: T;         // ← 쓸 때 채우는 빈칸
+}
+```
+
+```ts
+PopitResponse<FacilityListRes>   // result 자리에 시설 목록
+PopitResponse<HostProfileRes>    // result 자리에 호스트 정보
+```
+
+🥮 **붕어빵 틀** — 틀은 하나, 안에 팥을 넣을지 슈크림을 넣을지는 만들 때 정한다. `T`는 Type의 T(관례).
+
+### 49. 봉투 두 겹 벗기기 — `res.data.result`
+
+```ts
+export const getFacilities = async () => {
+  const res = await api.get<PopitResponse<FacilityListRes>>("/api/v1/facilities");
+  return res.data.result;
+};
+```
+
+왜 두 번 파고드나:
+
+| 단계 | 내용 |
+| --- | --- |
+| `res` | axios가 준 객체 (상태코드·헤더까지 전부 포함) |
+| `res.data` | 응답 **본문** = 봉투 전체 `{ isSuccess, code, message, result }` |
+| `res.data.result` | 봉투 안 **진짜 데이터** |
+
+⭐ **봉투 벗기는 일은 API 함수 안에서 끝낸다.** 화면 컴포넌트가 `res.data.result`를 알 필요는 없다. 화면은 "시설 목록 주세요"만 하면 된다(관심사 분리).
+
+### 50. accessToken vs refreshToken — 왜 두 개인가
+
+로그인하면 토큰을 **두 개** 받는다.
+
+| | 역할 | 수명(팝잇 기준) |
+| --- | --- | --- |
+| **accessToken** | 실제 출입증. 요청마다 붙임 | **30분** |
+| **refreshToken** | 출입증 재발급권 | **14일** |
+
+accessToken은 요청마다 보내니까 새어나갈 위험이 크다 → **일부러 짧게** 만들고, 만료되면 refreshToken으로 새로 받는다(`POST /api/v1/auth/reissue`). 사용자는 다시 로그인할 필요가 없다.
+
+**JWT**(JSON Web Token) 자체는 그냥 base64라 **누구나 열어볼 수 있다.** 위조만 불가(서버 비밀키로 서명). 안에 이런 게 들어있다.
+
+```json
+{ "sub": "5003905970", "role": "ROLE_GUEST", "token_type": "access", "iat": 1785222570, "exp": 1785224370 }
+```
+
+`exp - iat = 1800초 = 30분`. **토큰만 보고 만료 시각을 계산할 수 있다.**
+
+⚠️ **`sub` ≠ 우리 DB의 `userId`.** `sub`는 카카오·구글이 준 소셜 ID이고, 우리 유저 번호는 서버 응답의 `userId`다. 헷갈리면 엉뚱한 값으로 조회하게 된다.
+
+⚠️ **`role`은 권한 판단의 근거가 아닐 수 있다.** 호스트 등록을 마친 계정도 토큰의 `role`은 `ROLE_GUEST`였다. 서버는 role이 아니라 **DB의 호스트 레코드 존재 여부**로 판단하고 있었다. → `isHostRegistered`는 반드시 `GET /api/v1/hosts/me` 결과로 채워야 한다.
+
+### 51. ⚠️ `Authorization: Bearer` — 붙여넣기 사고
+
+백엔드가 준 JSON을 통째로 복사해 Swagger `Authorize`에 넣었더니 `401`이 났다. 실제로 나간 헤더:
+
+```
+Authorization: Bearer eyJhbGci...jqouQ", "refreshToken": "eyJhbGci...XZHQ
+                                       ↑ 여기부터 전부 딸려 들어감
+```
+
+JWT는 **점(`.`)으로 나뉜 3덩어리**(헤더·내용물·서명)로만 이뤄진다. 뒤에 쓰레기가 붙으면 서명 검사가 실패한다.
+
+```
+Authorization: Bearer eyJhbGci...
+               ^^^^^^ 스킴  ^^^^^ 토큰      ← 이 둘 뿐. 따옴표·쉼표 없음
+```
+
+- Swagger `Authorize` 칸에는 **`Bearer` 없이 토큰만** (스킴은 Swagger가 붙여줌)
+- `Authorize`는 토큰을 **발급하는 곳이 아니라 보관하는 곳** — 지갑이지 발급소가 아니다
+- ⭐ **`Execute` 후 Curl 박스로 실제 나간 헤더를 확인하는 습관.** "내가 넣은 값"과 "실제 나간 값"은 다를 수 있다
+
+### 52. ⭐ 401 vs 404 — 에러 코드가 성공을 알려주기도 한다
+
+호스트 미등록 계정으로 `GET /api/v1/hosts/me` 를 부르면 `404`가 온다. 이건 **실패가 아니라 성공 신호**다.
+
+| 응답 | 의미 |
+| --- | --- |
+| `401` | **너가 누군지 모르겠다** → 인증 실패 |
+| `404` | **너가 누군진 알겠는데, 네 호스트 프로필이 없다** → 인증 **성공** |
+
+`401`에서 `404`로 바뀐 순간 "토큰은 통과했다"가 증명된 것.
+
+⭐ **`404`는 에러가 아니라 "호스트 등록 안 한 사용자"라는 정상 상태다.**
+
+```
+GET /hosts/me → 200 → isHostRegistered = true
+              → 404 → isHostRegistered = false   ← 에러 처리 X, 정상 분기
+              → 401 → 로그인 만료 → 로그인 유도
+```
+
+`catch`에서 404를 다른 에러와 묶으면 **호스트 등록을 안 한 모든 사용자가 오류로 처리된다.**
+
+### 53. 팀에 패키지 공유하기 — `node_modules`는 안 올라간다
+
+```bash
+pnpm add axios @tanstack/react-query
+```
+
+| 파일 | 역할 | 깃에 올라감? |
+| --- | --- | --- |
+| `package.json` | **쇼핑 목록** — "이 프로젝트는 axios가 필요함" | ✅ |
+| `pnpm-lock.yaml` | **정확한 버전 명세**(하위 의존성까지) | ✅ |
+| `node_modules/` | **실제 코드 파일 수만 개** | ❌ `.gitignore:10` |
+
+⚠️ 그래서 팀원은 `git pull` 후 **`pnpm install`을 직접 실행**해야 한다. 안 하면 `Failed to resolve import "axios"` 가 난다. → **PR 본문에 "머지 후 `pnpm install` 해주세요" 한 줄 적어주기.**
+
+(Vercel은 배포할 때마다 `pnpm install`을 자동으로 돌리므로 신경 쓸 필요 없다.)
+
+### 54. `npx tsc -b` 뜯어보기 + `tsx` 오타 주의
+
+```bash
+npx tsc -b
+```
+
+| 조각 | 뜻 |
+| --- | --- |
+| `npx` | `node_modules` 안에 설치된 도구를 실행해줘 (없으면 임시로 받아서 실행) |
+| `tsc` | **T**ype**S**cript **C**ompiler — 타입 검사 + JS 변환 |
+| `-b` | build 모드. 쪼개진 `tsconfig.*.json`을 순서대로 전부 검사 |
+
+**아무 메시지도 안 나오면 통과.** TypeScript는 문제가 없으면 조용하다.
+
+`package.json`의 `"build": "tsc -b && vite build"` → **`tsc -b`가 실패하면 배포가 통째로 멈춘다**(33번). PR 전에 한 번 돌리는 습관.
+
+⚠️ **`tsx` ≠ `tsc`** — 한 글자 차이인데 전혀 다른 도구다. `npx tsx -b` 를 치면 `bad option: -b` 가 나고, npx가 `tsx` 패키지를 임시로 받아버린다. (다행히 `package.json`에는 안 들어가므로 프로젝트는 깨끗하다)
+
+### 55. ⚠️ ESLint disable 주석에 설명을 붙이려면 `--`
+
+```ts
+// ❌ 설명이 규칙 이름의 일부로 읽혀서 "그런 규칙 없음" 에러
+// eslint-disable-line react-hooks/exhaustive-deps (setMode는 stable ref)
+
+// ✅ -- 로 규칙 이름과 설명을 구분
+// eslint-disable-line react-hooks/exhaustive-deps -- setMode는 stable ref
+
+// ✅ 또는 설명을 윗줄에 따로
+// setMode는 stable ref라 deps 제외
+// eslint-disable-line react-hooks/exhaustive-deps
+```
+
+규칙 끄기가 실패하면 **원래 숨기려던 경고까지 같이 튀어나와** 한 줄에서 문제 2개가 뜬다.
+
+💡 **TypeScript 에러와 ESLint 에러는 다른 것.** ESLint는 스타일 검사라 빌드를 막지 않는다(`tsc`는 막는다). VS Code에 빨간 줄이 떴을 때 **어느 쪽이 낸 건지 먼저 구분**하면 급한지 아닌지 판단이 된다.
+
+### 56. ⚠️ 브랜치 전환 함정 — 편집기가 옛 내용을 되살린다
+
+`fix/132`에서 `dev` 기반의 새 브랜치로 옮겼는데, `Header.tsx` 하나만 **#132 버전 내용으로 남아** 타입 에러가 났다.
+
+```
+Property 'isHostRegistered' does not exist on type 'AuthState'
+   Header(#132 버전)  ↔  authStore(dev 버전)   ← 짝이 안 맞음
+```
+
+원인: **VS Code에 열려 있던 파일이 브랜치 전환 후 예전 내용으로 저장된 것.** 브랜치를 바꾸면 디스크의 파일은 바뀌지만, 편집기가 들고 있던 옛 내용이 살아있다가 덮어쓴다.
+
+- 대처: 이미 다른 브랜치에 커밋돼 있으면 `git restore <파일>` 로 되돌리면 안전하다
+- 예방: **브랜치 전환 전에 열린 파일을 저장하고 닫기**, 전환 후 `git status`로 확인
+
+⭐ **`git status`에 예상 못 한 파일이 `M`으로 떠 있으면 반드시 `git diff`로 내용을 본다.** (39번의 확장판 — 브랜치는 뜨는 것보다 **옮긴 뒤 확인**이 더 중요할 때가 있다)
+
+---
