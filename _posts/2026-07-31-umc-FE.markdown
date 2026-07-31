@@ -1,0 +1,412 @@
+---
+layout: post
+title:  "UMC 팝잇 SelfStudy(6)"
+date:   2026-07-31 09:00:00 +0900
+categories: UMC
+---
+
+## 🗓️ 2026-07-31 추가 — 주소를 좌표로 바꾸는 함수 하나 만들면서 배운 TypeScript
+
+
+> React + TypeScript로 공간 등록 폼을 만들다가, 사용자가 입력한 주소를 지도에 찍을 수 있는 위경도 좌표로 바꿔야 했다.
+> 코드는 30줄 남짓인데 그 안에 TypeScript 기초 문법이 거의 다 들어있길래 하나씩 뜯어봤다.
+
+---
+
+## 1. 왜 이 함수가 필요했나
+
+공간 등록 폼에서 사용자는 주소를 **글자**로 입력한다.
+
+```
+"서울특별시 강남구 테헤란로 152"
+```
+
+그런데 지도에 마커를 찍으려면 **숫자 좌표**가 필요하다.
+
+```
+위도 37.5006, 경도 127.0366
+```
+
+이 변환을 **지오코딩(Geocoding)** 이라고 부른다.
+
+문제는 이걸 직접 만들 수 없다는 것이다. 전국 주소와 좌표를 매칭한 데이터베이스가 있어야 하는데, 그건 개인이 가질 수 있는 게 아니다. 카카오는 가지고 있다. 그래서 카카오 지도 SDK를 갖다 쓰기로 했다.
+
+---
+
+## 2. 그래서 SDK가 뭔데
+
+**SDK = Software Development Kit.** 남이 만들어서 배포한 기능 꾸러미다.
+
+카카오 지도 SDK 안에는 지도 그리기, 마커 찍기, 주소↔좌표 변환 같은 기능이 들어있다. `index.html`에 `<script>` 태그로 붙여서 쓴다.
+
+```html
+<script src="//dapi.kakao.com/v2/maps/sdk.js?appkey=발급받은키&libraries=services"></script>
+```
+
+두 가지 포인트가 있다.
+
+- `appkey` — 카카오 개발자 사이트에서 발급받는다. 코드에 그대로 박으면 안 되니까 `.env`에 넣고 `VITE_KAKAO_MAP_APP_KEY`로 불러온다.
+- `libraries=services` — **이게 빠지면 지오코딩 기능이 안 들어온다.** 지도 표시는 기본 SDK에 있지만, 주소 변환(`Geocoder`)은 services 라이브러리에 따로 들어있다. 처음에 이거 몰라서 헤맸다.
+
+### npm 패키지가 아니라 `window.kakao`인 이유
+
+요즘 라이브러리는 보통 이렇게 쓴다.
+
+```ts
+import { something } from 'some-package';
+```
+
+그런데 카카오 지도 SDK는 npm 패키지가 아니다. `<script>` 태그가 브라우저의 전역 객체인 `window`에 `kakao`라는 값을 꽂아넣는 옛날 방식이다.
+
+그래서 코드에서는 이렇게 접근한다.
+
+```ts
+window.kakao.maps.services.Geocoder
+```
+
+npm 패키지가 아니라서 타입 정의(`@types/...`)도 없다. 그래서 `src/types/kakao-maps.d.ts`에 필요한 만큼 직접 선언해서 쓰고 있다.
+
+---
+
+## 3. 완성된 코드
+
+```ts
+export interface Coordinate {
+  latitude: number;
+  longitude: number;
+}
+
+export const geocodeAddress = (address: string): Promise<Coordinate | null> =>
+  new Promise((resolve) => {
+    // SDK(services)가 아직 없으면 변환 불가 → 계약대로 null
+    const Geocoder = window.kakao?.maps?.services?.Geocoder;
+    if (!Geocoder) {
+      resolve(null);
+      return;
+    }
+
+    try {
+      const geocoder = new Geocoder();
+
+      geocoder.addressSearch(address, (result, status) => {
+        // 못 찾았거나 결과가 비었으면 null (result가 배열이 아닐 수도 있어 방어)
+        if (
+          status !== window.kakao.maps.services.Status.OK ||
+          !Array.isArray(result) ||
+          result.length === 0
+        ) {
+          resolve(null);
+          return;
+        }
+
+        // 카카오는 x=경도, y=위도이며 값이 문자열이라 숫자로 변환
+        resolve({
+          latitude: Number(result[0].y),
+          longitude: Number(result[0].x),
+        });
+      });
+    } catch {
+      resolve(null); // 생성·검색 중 예외도 null로 흡수 (reject 금지)
+    }
+  });
+```
+
+30줄. 이제 하나씩 뜯어본다.
+
+---
+
+## 4. TypeScript는 JavaScript에 라벨을 붙인 것
+
+시작하기 전에 큰 그림부터.
+
+**TypeScript = JavaScript + 타입 표시**
+
+JavaScript가 원본 언어고, TypeScript는 거기에 "이 값은 숫자다", "이건 글자다" 하는 라벨을 얹은 것이다. 브라우저는 TypeScript를 읽지 못한다. 빌드할 때 타입 라벨을 **전부 지우고** 순수 JavaScript로 변환해서 실행한다.
+
+즉 타입은 **개발 중에만 존재하는 메모**다. 실제로 돌아가는 건 JavaScript다.
+
+그럼 왜 쓰냐. 실수를 실행 전에 잡아주기 때문이다.
+
+```ts
+const age: number = "스물다섯"; // 에러: 숫자라고 해놓고 글자를 넣었다
+```
+
+이 에러가 브라우저에서 터지는 게 아니라 **에디터에서 빨간 줄로 즉시** 뜬다.
+
+### 내 코드에서 TypeScript는 어디인가
+
+```ts
+export const geocodeAddress = (address: string): Promise<Coordinate | null> =>
+```
+
+이 줄에서 TypeScript 문법은 딱 두 군데다.
+
+- `: string`
+- `: Promise<Coordinate | null>`
+
+이 둘을 지우면 나머지는 전부 순수 JavaScript다. 그러니까 이 파일은 사실상 **JavaScript 코드 + 타입 라벨 2개**인 셈이다.
+
+---
+
+## 5. 문법 하나씩
+
+### `const` — 다시 안 바꿀 상자
+
+```ts
+const geocoder = new Geocoder();
+```
+
+`geocoder`라는 이름표를 붙인 상자에 값을 넣는다. `const`라서 나중에 다른 값으로 교체할 수 없다.
+
+### `=>` — 화살표 함수
+
+함수는 "뭘 넣으면 뭐가 나오는 기계"다.
+
+```ts
+const double = (x) => x * 2;
+double(5); // 10
+```
+
+읽는 법: `(x)`를 받아서 → 그러면 `x * 2`를 내놓는다.
+
+우리 팀 컨벤션이 화살표 함수 통일이라 전부 이 형태로 쓴다.
+
+### `: string` — 타입 라벨
+
+```ts
+(address: string)
+```
+
+"`address`라는 값을 받는데, 얘는 **글자**다"라는 뜻이다.
+
+| 표기      | 뜻      | 예시                |
+| --------- | ------- | ------------------- |
+| `string`  | 글자    | `"서울시 강남구"`   |
+| `number`  | 숫자    | `37.5`              |
+| `boolean` | 참/거짓 | `true`              |
+| `null`    | 값 없음 | `null`              |
+
+### `|` — "또는"
+
+```ts
+Coordinate | null;
+```
+
+"좌표 객체 **또는** null". 둘 중 하나가 나온다는 선언이다.
+
+**이게 TypeScript를 쓰는 진짜 이유라고 느꼈다.** 반환 타입에 `| null`을 박아두면, 이 함수를 쓰는 쪽에서 null 체크를 빼먹었을 때 **에디터가 빨간 줄로 막는다.** 실패 처리를 강제로 하게 만드는 장치다.
+
+```ts
+const coord = await geocodeAddress(address);
+coord.latitude; // 에러: coord가 null일 수 있다
+
+if (!coord) return; // 체크하고 나면
+coord.latitude; // 통과
+```
+
+### `interface` — 객체 모양 정의
+
+```ts
+export interface Coordinate {
+  latitude: number;
+  longitude: number;
+}
+```
+
+"`Coordinate`라는 이름의 모양을 만든다. 그 안에는 `latitude`(숫자)와 `longitude`(숫자)가 들어있다."
+
+이렇게 정의해두면 타입 자리에 `Coordinate`라고만 쓰면 된다. 매번 `{ latitude: number; longitude: number }`를 길게 반복하지 않아도 되고, 이름이 붙으니 의미도 명확해진다.
+
+### `Promise<...>` — 나중에 도착할 값
+
+`< >` 안에는 "무엇이 담기는지"를 적는다.
+
+- `Promise<number>` → 나중에 숫자가 온다
+- `Promise<Coordinate | null>` → 나중에 좌표 또는 null이 온다
+
+**Promise라는 개념 자체가 이 코드의 핵심**이다.
+
+주소를 좌표로 바꾸는 건 카카오 서버에 물어보는 일이다. 시간이 걸린다. 0.3초쯤. 그동안 브라우저가 멈춰 있으면 사용자는 앱이 죽은 줄 안다.
+
+그래서 함수는 결과 대신 **"약속증서"를 즉시** 던져준다. 이게 Promise다. "결과는 아직 없지만 나오면 줄게."
+
+받는 쪽에서는 이렇게 쓴다.
+
+```ts
+const coord = await geocodeAddress("서울시 강남구");
+```
+
+`await`은 "약속이 지켜질 때까지 기다렸다가 실제 값을 꺼내줘"라는 뜻이다.
+
+### `new Promise((resolve) => ...)` — 콜백을 Promise로 감싸기
+
+**이 함수가 존재하는 이유가 사실 이거였다.**
+
+카카오의 `addressSearch`는 **콜백 방식** API다.
+
+```ts
+geocoder.addressSearch(주소, (결과) => {
+  // 답이 오면 여기가 실행된다
+});
+```
+
+콜백은 `await`을 쓸 수 없다. 그래서 Promise로 한 겹 감싸서 async/await 세계로 끌어온 것이다.
+
+```ts
+new Promise((resolve) => {
+  geocoder.addressSearch(address, (result) => {
+    resolve(result); // 여기서 약속 이행
+  });
+});
+```
+
+`resolve(값)`이 호출되는 순간 `await`이 풀리고 그 값이 넘어간다.
+
+### `reject`를 안 쓴 이유
+
+Promise는 원래 `resolve`(성공)와 `reject`(실패) 두 개를 받는다. 그런데 이 코드는 `resolve`만 받는다.
+
+```ts
+new Promise((resolve) => { ... })
+```
+
+의도적이다. **"실패는 예외가 아니라 null"** 이라는 계약을 정했다.
+
+`reject`를 쓰면 호출하는 쪽마다 `try/catch`를 둘러야 한다. 그런데 "주소를 못 찾았다"는 건 프로그램이 터진 상황이 아니라 그냥 흔히 있는 결과다. 예외로 다룰 일이 아니다.
+
+그래서 어떤 실패든 `resolve(null)`로 흡수한다. 쓰는 쪽은 `if (!coord)` 한 줄이면 끝이다.
+
+### `?.` — 옵셔널 체이닝
+
+```ts
+window.kakao?.maps?.services?.Geocoder;
+```
+
+`window.kakao.maps.services`는 상자 안의 상자 안의 상자를 뚫고 들어가는 것이다.
+
+문제는 중간에 상자가 없으면 프로그램이 터진다는 것이다.
+
+```
+TypeError: Cannot read properties of undefined
+```
+
+`?.`는 "없으면 그냥 조용히 `undefined`를 내놓고 멈춰"라는 안전장치다.
+
+### `!` — 부정
+
+```ts
+if (!Geocoder) { ... }
+```
+
+`!`는 "아니면"이다. `Geocoder`가 없으면(비어있으면) 안쪽이 실행된다.
+
+### 단독 `return`
+
+```ts
+resolve(null);
+return;
+```
+
+"여기서 함수를 끝낸다. 아래 줄은 실행하지 마라."
+
+`resolve`를 호출해도 함수 실행이 자동으로 멈추지는 않는다. `return`을 빼먹으면 null로 약속을 이행해놓고도 아래 코드가 계속 돌아간다. 흔한 버그다.
+
+### `try / catch`
+
+```ts
+try {
+  위험한 코드;
+} catch {
+  터졌을 때 할 일;
+}
+```
+
+터질 수도 있는 코드를 `try`에 넣는다. 진짜 터지면 프로그램이 죽는 대신 `catch`로 점프한다.
+
+**다만 한계가 있다.** `try` 안에 콜백이 들어있어도, **콜백 내부에서 나는 에러는 못 잡는다.** 콜백은 나중에 별도 실행 흐름에서 돌기 때문이다. 여기서 `try`가 지켜주는 건 `new Geocoder()` 같은 동기 구간뿐이다. 이건 알고 써야 한다.
+
+---
+
+## 6. 삽질 기록
+
+### x와 y가 뒤집혀 있다
+
+가장 크게 헤맨 부분이다.
+
+```ts
+latitude: Number(result[0].y),   // 위도 ← y
+longitude: Number(result[0].x),  // 경도 ← x
+```
+
+카카오 API는 **x = 경도(longitude), y = 위도(latitude)** 로 준다. 수학 좌표계 관습을 따른 것이다. x는 가로축이고, 지구에서 가로 방향은 경도니까.
+
+그런데 우리가 좌표를 말할 때는 보통 "위도, 경도" 순서로 말한다. 순서도 다르고 이름도 다르다. 그냥 `x → latitude`로 매핑하면 서울(37.5, 127.0)이 아프리카 앞바다 어딘가로 날아간다.
+
+### 값이 문자열로 온다
+
+```ts
+result[0].y; // "37.5006"  ← 숫자가 아니라 글자
+```
+
+그래서 `Number()`로 변환해야 한다. 안 하면 나중에 계산할 때 이상해진다. 문자열 `"37" + 1`은 `38`이 아니라 `"371"`이다.
+
+### SDK가 아직 안 왔을 수 있다
+
+`<script>` 태그 로딩은 비동기다. React 컴포넌트가 먼저 렌더링되고 SDK가 나중에 도착할 수 있다. 그 짧은 순간에 이 함수가 호출되면 `window.kakao`가 아직 `undefined`다.
+
+```ts
+const Geocoder = window.kakao?.maps?.services?.Geocoder;
+if (!Geocoder) {
+  resolve(null);
+  return;
+}
+```
+
+이 가드가 그 타이밍 구멍을 막는다.
+
+### `Array.isArray`를 굳이 또 체크한 이유
+
+```ts
+if (
+  status !== window.kakao.maps.services.Status.OK ||
+  !Array.isArray(result) ||
+  result.length === 0
+) {
+```
+
+3중 방어다.
+
+1. `status !== OK` — 검색 자체가 실패
+2. `!Array.isArray(result)` — 타입 선언상으로는 배열이지만, 그 타입 선언은 **내가 직접 손으로 쓴 것**이다. 카카오가 실제로 뭘 줄지 100% 보장되지 않는다
+3. `result.length === 0` — 배열이긴 한데 결과가 없음
+
+2번이 포인트다. **TypeScript 타입은 컴파일할 때 다 사라진다.** 런타임에는 아무 검사도 안 한다. 외부에서 들어오는 값(API 응답 같은 것)은 타입을 써놨더라도 실제로 그 모양이라는 보장이 없다. 그래서 직접 확인해야 한다.
+
+### 리팩터링하다가 타입을 지웠다
+
+방어 코드를 추가하면서 파일 위쪽의 `interface Coordinate`를 실수로 같이 날렸다. 그런데 함수 시그니처에서는 여전히 `Coordinate`를 쓰고 있었다.
+
+```
+Cannot find name 'Coordinate'.
+```
+
+에디터에서는 그냥 빨간 줄 하나였는데 빌드가 통과를 안 했다. `pnpm build`를 돌려보고 알았다. **에디터 경고를 무시하지 말자**는 걸 배웠다.
+
+---
+
+## 7. 정리하며
+
+30줄짜리 함수 하나에 들어있던 것들:
+
+| 개념                 | 배운 것                                                  |
+| -------------------- | -------------------------------------------------------- |
+| 타입 라벨            | 개발 중에만 존재. 빌드하면 사라짐                        |
+| `\|` 유니온           | `\| null`로 실패 처리를 강제할 수 있다                    |
+| `interface`          | 객체 모양에 이름 붙이기                                  |
+| `Promise`            | 시간이 걸리는 일의 "약속증서"                            |
+| 콜백 → Promise 래핑  | 옛날 API를 async/await 세계로 끌어오는 법                |
+| `resolve`만 쓰기     | 실패를 예외가 아닌 값(null)으로 다루는 설계              |
+| `?.`                 | 중간이 비어도 안 터지게                                  |
+| 런타임 검증          | 타입은 런타임에 없다. 외부 데이터는 직접 확인해야 한다   |
+
+가장 크게 남은 건 마지막 줄이다. **TypeScript는 내 코드 안에서만 유효한 약속**이고, 서버나 SDK에서 들어오는 값은 타입을 뭐라고 써놨든 실제로 그렇다는 보장이 없다. 경계에서는 직접 확인해야 한다.
