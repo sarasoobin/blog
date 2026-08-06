@@ -7,7 +7,6 @@ categories: SelfStudy
 
 # IntelliJ IDEA 단축키 정리(Windows / Mac)
 
-스프링 공부하면서 실제로 손이 자주 가는 것만 추렸다.
 Windows 기준이고, Mac은 `⌘`(Command) · `⌥`(Option) · `⌃`(Control) · `⇧`(Shift).
 
 > 단축키가 안 먹으면 대부분 아래 셋 중 하나다.
